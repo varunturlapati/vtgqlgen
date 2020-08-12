@@ -1,0 +1,44 @@
+# Define what the schema is capable of:
+
+type Query {
+    Fruits: [Fruit!]!
+    Fruit(Id: ID!): Fruit
+}
+
+# Define what the queries are capable of:
+type Fruit {
+    Id: ID!
+    Name: String!
+    Quantity: Int!
+    Detail: Detail
+    Level: Level
+    Rack: Rack
+}
+type Detail {
+    Name: String!
+    Color: String
+    Taste: String
+}
+type Level {
+    Color: String!
+    Level: String
+}
+type Rack {
+    Id: Int!
+    Name: String!
+    Created: String
+    CustomFields: CustomFields
+}
+type CustomFields {
+    RblxRackId: Int
+    DesignRevision: String
+    CageId: String
+}
+type Status {
+    Label: String
+    Value: Int
+}
+type Role {
+    Id: ID!
+    Name: String
+}
