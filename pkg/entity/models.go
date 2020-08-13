@@ -7,7 +7,7 @@ type Fruit struct {
 	Color    string
 	Level    string
 	X        Detail
-	Rack     ServerRack
+	ServerRack     ServerRack
 }
 
 type Detail struct {

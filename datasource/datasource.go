@@ -26,6 +26,8 @@ type Repository interface {
 	// rack queries
 	GetRack(ctx context.Context, id int) (entity.ServerRack, error)
 	ListRacks(ctx context.Context) ([]entity.ServerRack, error)
+
+	ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]r.ListRacksByFruitIDsRow, error)
 }
 
 const (

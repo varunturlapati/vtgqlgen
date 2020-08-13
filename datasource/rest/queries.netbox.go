@@ -65,3 +65,27 @@ func (r *RestRequests) ListRacks(ctx context.Context) ([]entity.ServerRack, erro
 	}
 	return racks, nil
 }
+
+type ListRacksByFruitIDsRow struct {
+	Id int
+	Name string
+	Created string
+	CustomFields entity.CustomFields
+}
+
+func (r *RestRequests) ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]ListRacksByFruitIDsRow, error) {
+	var retList []ListRacksByFruitIDsRow
+	for _, fid := range fruitIDs {
+		res, err := r.GetRack(ctx, fid)
+		if err != nil {
+			return nil, err
+		}
+		var tmp ListRacksByFruitIDsRow
+		tmp.Id = int(res.Id)
+		tmp.Name = res.Name
+		tmp.Created = res.Created
+		tmp.CustomFields = res.CustomFields
+		retList = append(retList, tmp)
+	}
+	return retList, nil
+}

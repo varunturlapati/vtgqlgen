@@ -8,6 +8,7 @@ import (
 
 	gql "github.com/graph-gophers/graphql-go"
 
+	"github.com/varunturlapati/vtgqlgen/dataloaders"
 	ds "github.com/varunturlapati/vtgqlgen/datasource"
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
@@ -24,6 +25,7 @@ type Fruit struct {
 
 type Resolver struct {
 	Repository ds.Repository
+	DataLoaders dataloaders.Retriever
 }
 
 func (r *queryResolver) Fruits(ctx context.Context) ([]entity.Fruit, error) {
@@ -93,7 +95,7 @@ func (r *fruitResolver) ID(ctx context.Context, obj *entity.Fruit) (int, error) 
 	return obj.Id, nil
 }
 
-func (r *fruitResolver) Color(ctx context.Context, obj *Rack) (*detailResolver, error) {
+func (r *fruitResolver) Color(ctx context.Context, obj *entity.ServerRack) (*detailResolver, error) {
 	return &detailResolver{r.Resolver}, nil
 }
 
@@ -105,7 +107,8 @@ func (r *detailResolver) Taste(ctx context.Context, obj *entity.Detail) (string,
 	return obj.Taste, nil
 }
 
-func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*Rack, error) {
+func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*entity.ServerRack, error) {
+	/*
 	a := &rackResolver{r.Resolver}
 	rack, err := a.Repository.GetRack(ctx, obj.Id)
 	retRack := &Rack{
@@ -115,4 +118,6 @@ func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*Rack, err
 		CustomFields: &rack.CustomFields,
 	}
 	return retRack, err
+	*/
+	return r.DataLoaders.Retrieve(ctx).RackByFruitID.Load(obj.Id)
 }
