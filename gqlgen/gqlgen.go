@@ -1,11 +1,11 @@
 package gqlgen
 
 import (
-	// "github.com/99designs/gqlgen/graphql"
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/varunturlapati/vtgqlgen/datasources/db" // update the username
+
+	"github.com/varunturlapati/vtgqlgen/datasource/db"
 )
 
 // NewHandler returns a new graphql endpoint handler.

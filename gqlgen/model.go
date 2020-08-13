@@ -3,14 +3,14 @@
 package gqlgen
 
 import (
-	"github.com/varunturlapati/vtgqlgen/datasources/db"
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
 type Rack struct {
-	ID           int              `json:"Id"`
-	Name         string           `json:"Name"`
-	Created      *string          `json:"Created"`
-	CustomFields *db.CustomFields `json:"CustomFields"`
+	ID           int                  `json:"Id"`
+	Name         string               `json:"Name"`
+	Created      *string              `json:"Created"`
+	CustomFields *entity.CustomFields `json:"CustomFields"`
 }
 
 type Role struct {

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/varunturlapati/vtgqlgen/datasources/db" // update the username
-	"github.com/varunturlapati/vtgqlgen/gqlgen"         // update the username
+	"github.com/varunturlapati/vtgqlgen/datasource/db" // update the username
+	"github.com/varunturlapati/vtgqlgen/gqlgen"        // update the username
 )
 
 func main() {

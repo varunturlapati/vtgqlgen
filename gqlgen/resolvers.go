@@ -4,11 +4,14 @@ package gqlgen
 
 import (
 	"context"
-	_ "github.com/99designs/gqlgen/graphql"
-	gql "github.com/graph-gophers/graphql-go"
-	"github.com/varunturlapati/vtgqlgen/datasources/db"
 	"log"
+
+	gql "github.com/graph-gophers/graphql-go"
+
+	"github.com/varunturlapati/vtgqlgen/datasource/db"
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
+
 type Fruit struct {
 	Id       gql.ID
 	Name     string
@@ -16,29 +19,29 @@ type Fruit struct {
 	Color    string
 	Level    string
 	// X        Detail
-	Rack     db.ServerRack
+	Rack entity.ServerRack
 }
 
-type Resolver struct{
+type Resolver struct {
 	Repository db.Repository
 }
 
-func (r *queryResolver) Fruits(ctx context.Context) ([]db.Fruit, error) {
+func (r *queryResolver) Fruits(ctx context.Context) ([]entity.Fruit, error) {
 	fruits, err := r.Repository.ListFruits(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return fruits, nil
 	/*
-	details, err := r.Repository.ListDetails(ctx)
-	if err != nil {
-		return nil, err
-	}
+		details, err := r.Repository.ListDetails(ctx)
+		if err != nil {
+			return nil, err
+		}
 	*/
 	// panic("not implemented")
 }
 
-func (r *queryResolver) Fruit(ctx context.Context, id int) (*db.Fruit, error) {
+func (r *queryResolver) Fruit(ctx context.Context, id int) (*entity.Fruit, error) {
 	fObj, err := r.Repository.GetFruit(ctx, id)
 	if err != nil {
 		return nil, err
@@ -47,7 +50,7 @@ func (r *queryResolver) Fruit(ctx context.Context, id int) (*db.Fruit, error) {
 	// panic("not implemented")
 }
 
-func (r *Resolver) Fruit() FruitResolver { return &fruitResolver{r}}
+func (r *Resolver) Fruit() FruitResolver { return &fruitResolver{r} }
 
 // func (r *Resolver) Detail() DetailResolver { return &detailResolver{r}}
 
@@ -72,7 +75,7 @@ type rackResolver struct {
 	*Resolver
 }
 
-func (r *fruitResolver) Detail(ctx context.Context, obj *db.Fruit) (*db.Detail, error) {
+func (r *fruitResolver) Detail(ctx context.Context, obj *entity.Fruit) (*entity.Detail, error) {
 	//d := &detailResolver{r.Resolver}
 	//detail, err := d.Repository.GetDetail(ctx, obj.Name)
 	detail, err := r.Repository.GetDetail(ctx, obj.Name)
@@ -80,13 +83,13 @@ func (r *fruitResolver) Detail(ctx context.Context, obj *db.Fruit) (*db.Detail, 
 	return &detail, err
 }
 
-func (r *fruitResolver) Level(ctx context.Context, obj *db.Fruit) (*db.Level, error) {
+func (r *fruitResolver) Level(ctx context.Context, obj *entity.Fruit) (*entity.Level, error) {
 	l := &levelResolver{r.Resolver}
 	level, err := l.Repository.GetLevel(ctx, obj.Level)
 	return &level, err
 }
 
-func (r *fruitResolver) ID(ctx context.Context, obj *db.Fruit) (int, error) {
+func (r *fruitResolver) ID(ctx context.Context, obj *entity.Fruit) (int, error) {
 	return obj.Id, nil
 }
 
@@ -94,15 +97,15 @@ func (r *fruitResolver) Color(ctx context.Context, obj *Rack) (*detailResolver, 
 	return &detailResolver{r.Resolver}, nil
 }
 
-func (r *detailResolver) Color(ctx context.Context, obj *db.Detail) (string, error) {
+func (r *detailResolver) Color(ctx context.Context, obj *entity.Detail) (string, error) {
 	return obj.Color, nil
 }
 
-func (r *detailResolver) Taste(ctx context.Context, obj *db.Detail) (string, error) {
+func (r *detailResolver) Taste(ctx context.Context, obj *entity.Detail) (string, error) {
 	return obj.Taste, nil
 }
 
-func (r *fruitResolver) Rack(ctx context.Context, obj *db.Fruit) (*Rack, error) {
+func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*Rack, error) {
 	a := &rackResolver{r.Resolver}
 	rack, err := a.Repository.GetRack(ctx, obj.Id)
 	retRack := &Rack{
@@ -113,6 +116,3 @@ func (r *fruitResolver) Rack(ctx context.Context, obj *db.Fruit) (*Rack, error) 
 	}
 	return retRack, err
 }
-
-
-

@@ -4,26 +4,29 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
 type Repository interface {
 	// fruit queries
-	GetFruit(ctx context.Context, id int) (Fruit, error)
-	ListFruits(ctx context.Context) ([]Fruit, error)
+	GetFruit(ctx context.Context, id int) (entity.Fruit, error)
+	ListFruits(ctx context.Context) ([]entity.Fruit, error)
 
 	// detail queries
-	GetDetail(ctx context.Context, name string) (Detail, error)
-	ListDetails(ctx context.Context) ([]Detail, error)
+	GetDetail(ctx context.Context, name string) (entity.Detail, error)
+	ListDetails(ctx context.Context) ([]entity.Detail, error)
 
 	// level queries
-	GetLevel(ctx context.Context, level string) (Level, error)
-	ListLevels(ctx context.Context) ([]Level, error)
+	GetLevel(ctx context.Context, level string) (entity.Level, error)
+	ListLevels(ctx context.Context) ([]entity.Level, error)
 
 	// rack queries
-	GetRack(ctx context.Context, id int) (ServerRack, error)
-	ListRacks(ctx context.Context) ([]ServerRack, error)
+	GetRack(ctx context.Context, id int) (entity.ServerRack, error)
+	ListRacks(ctx context.Context) ([]entity.ServerRack, error)
 }
 
 type repoSvc struct {
@@ -63,4 +66,3 @@ func NewRepository(db *gorm.DB) Repository {
 func Open(dsn string) (*gorm.DB, error) {
 	return gorm.Open(mysql.Open(dsn), &gorm.Config{})
 }
-

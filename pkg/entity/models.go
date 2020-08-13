@@ -1,18 +1,18 @@
-package db
+package entity
 
 type Fruit struct {
-	Id int
-	Name string
+	Id       int
+	Name     string
 	Quantity int
-	Color string
-	Level string
-	X Detail
-	Rack ServerRack
+	Color    string
+	Level    string
+	X        Detail
+	Rack     ServerRack
 }
 
 type Detail struct {
-	Id int64
-	Name string
+	Id    int64
+	Name  string
 	Color string
 	Taste string
 }
@@ -22,7 +22,7 @@ type Level struct {
 	Level string
 }
 
-type ServerRack struct { // Yes! Trying to demo different datasources that may have relevant data of an object
+type ServerRack struct {
 	Id           int64
 	Name         string
 	CustomFields CustomFields `json:"custom_fields"`

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
 const (
@@ -35,6 +37,7 @@ SELECT color, level FROM colorkey
 ORDER BY color
 `
 )
+
 type GetFruitParams struct {
 	id int64
 }
@@ -48,26 +51,26 @@ type GetLevelParams struct {
 }
 
 type Result struct {
-	Count   int          `json:"count"`
-	Results []ServerRack `json:"results"`
+	Count   int                 `json:"count"`
+	Results []entity.ServerRack `json:"results"`
 }
 
-func (q *Queries) GetFruit(ctx context.Context, id int) (Fruit, error) {
+func (q *Queries) GetFruit(ctx context.Context, id int) (entity.Fruit, error) {
 	row := q.db.QueryRowContext(ctx, getFruit, id)
-	var f Fruit
+	var f entity.Fruit
 	err := row.Scan(&f.Id, &f.Name, &f.Quantity)
 	return f, err
 }
 
-func (q *Queries) ListFruits(ctx context.Context) ([]Fruit, error) {
+func (q *Queries) ListFruits(ctx context.Context) ([]entity.Fruit, error) {
 	rows, err := q.db.QueryContext(ctx, listFruits)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []Fruit
+	var fs []entity.Fruit
 	for rows.Next() {
-		var f Fruit
+		var f entity.Fruit
 		if err := rows.Scan(&f.Id, &f.Name, &f.Quantity); err != nil {
 			return nil, err
 		}
@@ -82,24 +85,24 @@ func (q *Queries) ListFruits(ctx context.Context) ([]Fruit, error) {
 	return fs, err
 }
 
-func (q *Queries) GetDetail(ctx context.Context, fruitName string) (Detail, error) {
+func (q *Queries) GetDetail(ctx context.Context, fruitName string) (entity.Detail, error) {
 	log.Println(fruitName)
 	row := q.db.QueryRowContext(ctx, getDetail, fruitName)
-	var f Detail
+	var f entity.Detail
 	err := row.Scan(&f.Id, &f.Name, &f.Color, &f.Taste)
 	log.Printf("Queries.GetDetail result: f is %+v\nerr is %v\n", f, err)
 	return f, err
 }
 
-func (q *Queries) ListDetails(ctx context.Context) ([]Detail, error) {
+func (q *Queries) ListDetails(ctx context.Context) ([]entity.Detail, error) {
 	rows, err := q.db.QueryContext(ctx, listDetails)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []Detail
+	var fs []entity.Detail
 	for rows.Next() {
-		var f Detail
+		var f entity.Detail
 		if err := rows.Scan(&f.Id, &f.Name, &f.Color, &f.Taste); err != nil {
 			return nil, err
 		}
@@ -114,22 +117,22 @@ func (q *Queries) ListDetails(ctx context.Context) ([]Detail, error) {
 	return fs, err
 }
 
-func (q *Queries) GetLevel(ctx context.Context, color string) (Level, error) {
+func (q *Queries) GetLevel(ctx context.Context, color string) (entity.Level, error) {
 	row := q.db.QueryRowContext(ctx, getLevel, color)
-	var f Level
+	var f entity.Level
 	err := row.Scan(&f.Color, &f.Level)
 	return f, err
 }
 
-func (q *Queries) ListLevels(ctx context.Context) ([]Level, error) {
+func (q *Queries) ListLevels(ctx context.Context) ([]entity.Level, error) {
 	rows, err := q.db.QueryContext(ctx, listLevels)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []Level
+	var fs []entity.Level
 	for rows.Next() {
-		var f Level
+		var f entity.Level
 		if err := rows.Scan(&f.Color, &f.Level); err != nil {
 			return nil, err
 		}
@@ -144,8 +147,8 @@ func (q *Queries) ListLevels(ctx context.Context) ([]Level, error) {
 	return fs, err
 }
 
-func (q *Queries) GetRack(ctx context.Context, id int) (ServerRack, error) {
-	var rack ServerRack
+func (q *Queries) GetRack(ctx context.Context, id int) (entity.ServerRack, error) {
+	var rack entity.ServerRack
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/%v/", id))
 	if err != nil {
 		return rack, err
@@ -162,9 +165,9 @@ func (q *Queries) GetRack(ctx context.Context, id int) (ServerRack, error) {
 	return rack, nil
 }
 
-func (q *Queries) ListRacks(ctx context.Context) ([]ServerRack, error) {
+func (q *Queries) ListRacks(ctx context.Context) ([]entity.ServerRack, error) {
 	var res Result
-	var racks []ServerRack
+	var racks []entity.ServerRack
 	resp, err := http.Get("http://localhost:8000/api/dcim/racks/")
 	if err != nil {
 		return nil, err
@@ -180,15 +183,15 @@ func (q *Queries) ListRacks(ctx context.Context) ([]ServerRack, error) {
 	}
 
 	for _, elem := range res.Results {
-		tmpRack := ServerRack{
+		tmpRack := entity.ServerRack{
 			Id:   elem.Id,
 			Name: elem.Name,
-			CustomFields: CustomFields{
+			CustomFields: entity.CustomFields{
 				RblxRackId:     elem.CustomFields.RblxRackId,
 				DesignRevision: elem.CustomFields.DesignRevision,
 				CageId:         elem.CustomFields.CageId,
 			},
-			Created:      elem.Created,
+			Created: elem.Created,
 		}
 		racks = append(racks, tmpRack)
 	}

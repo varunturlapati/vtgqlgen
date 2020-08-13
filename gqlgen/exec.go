@@ -12,9 +12,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/varunturlapati/vtgqlgen/datasources/db"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -93,13 +94,13 @@ type ComplexityRoot struct {
 }
 
 type FruitResolver interface {
-	Detail(ctx context.Context, obj *db.Fruit) (*db.Detail, error)
-	Level(ctx context.Context, obj *db.Fruit) (*db.Level, error)
-	Rack(ctx context.Context, obj *db.Fruit) (*Rack, error)
+	Detail(ctx context.Context, obj *entity.Fruit) (*entity.Detail, error)
+	Level(ctx context.Context, obj *entity.Fruit) (*entity.Level, error)
+	Rack(ctx context.Context, obj *entity.Fruit) (*Rack, error)
 }
 type QueryResolver interface {
-	Fruits(ctx context.Context) ([]db.Fruit, error)
-	Fruit(ctx context.Context, id int) (*db.Fruit, error)
+	Fruits(ctx context.Context) ([]entity.Fruit, error)
+	Fruit(ctx context.Context, id int) (*entity.Fruit, error)
 }
 
 type executableSchema struct {
@@ -455,7 +456,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _CustomFields_RblxRackId(ctx context.Context, field graphql.CollectedField, obj *db.CustomFields) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomFields_RblxRackId(ctx context.Context, field graphql.CollectedField, obj *entity.CustomFields) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -486,7 +487,7 @@ func (ec *executionContext) _CustomFields_RblxRackId(ctx context.Context, field 
 	return ec.marshalOInt2int64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomFields_DesignRevision(ctx context.Context, field graphql.CollectedField, obj *db.CustomFields) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomFields_DesignRevision(ctx context.Context, field graphql.CollectedField, obj *entity.CustomFields) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -517,7 +518,7 @@ func (ec *executionContext) _CustomFields_DesignRevision(ctx context.Context, fi
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomFields_CageId(ctx context.Context, field graphql.CollectedField, obj *db.CustomFields) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomFields_CageId(ctx context.Context, field graphql.CollectedField, obj *entity.CustomFields) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -548,7 +549,7 @@ func (ec *executionContext) _CustomFields_CageId(ctx context.Context, field grap
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Detail_Name(ctx context.Context, field graphql.CollectedField, obj *db.Detail) (ret graphql.Marshaler) {
+func (ec *executionContext) _Detail_Name(ctx context.Context, field graphql.CollectedField, obj *entity.Detail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -582,7 +583,7 @@ func (ec *executionContext) _Detail_Name(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Detail_Color(ctx context.Context, field graphql.CollectedField, obj *db.Detail) (ret graphql.Marshaler) {
+func (ec *executionContext) _Detail_Color(ctx context.Context, field graphql.CollectedField, obj *entity.Detail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -613,7 +614,7 @@ func (ec *executionContext) _Detail_Color(ctx context.Context, field graphql.Col
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Detail_Taste(ctx context.Context, field graphql.CollectedField, obj *db.Detail) (ret graphql.Marshaler) {
+func (ec *executionContext) _Detail_Taste(ctx context.Context, field graphql.CollectedField, obj *entity.Detail) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -644,7 +645,7 @@ func (ec *executionContext) _Detail_Taste(ctx context.Context, field graphql.Col
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Id(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Id(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -678,7 +679,7 @@ func (ec *executionContext) _Fruit_Id(ctx context.Context, field graphql.Collect
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Name(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Name(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -712,7 +713,7 @@ func (ec *executionContext) _Fruit_Name(ctx context.Context, field graphql.Colle
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Quantity(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Quantity(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -746,7 +747,7 @@ func (ec *executionContext) _Fruit_Quantity(ctx context.Context, field graphql.C
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Detail(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Detail(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -772,12 +773,12 @@ func (ec *executionContext) _Fruit_Detail(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*db.Detail)
+	res := resTmp.(*entity.Detail)
 	fc.Result = res
-	return ec.marshalODetail2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐDetail(ctx, field.Selections, res)
+	return ec.marshalODetail2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐDetail(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Level(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Level(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -803,12 +804,12 @@ func (ec *executionContext) _Fruit_Level(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*db.Level)
+	res := resTmp.(*entity.Level)
 	fc.Result = res
-	return ec.marshalOLevel2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐLevel(ctx, field.Selections, res)
+	return ec.marshalOLevel2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐLevel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Fruit_Rack(ctx context.Context, field graphql.CollectedField, obj *db.Fruit) (ret graphql.Marshaler) {
+func (ec *executionContext) _Fruit_Rack(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -839,7 +840,7 @@ func (ec *executionContext) _Fruit_Rack(ctx context.Context, field graphql.Colle
 	return ec.marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐRack(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Level_Color(ctx context.Context, field graphql.CollectedField, obj *db.Level) (ret graphql.Marshaler) {
+func (ec *executionContext) _Level_Color(ctx context.Context, field graphql.CollectedField, obj *entity.Level) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -873,7 +874,7 @@ func (ec *executionContext) _Level_Color(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Level_Level(ctx context.Context, field graphql.CollectedField, obj *db.Level) (ret graphql.Marshaler) {
+func (ec *executionContext) _Level_Level(ctx context.Context, field graphql.CollectedField, obj *entity.Level) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -933,9 +934,9 @@ func (ec *executionContext) _Query_Fruits(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]db.Fruit)
+	res := resTmp.([]entity.Fruit)
 	fc.Result = res
-	return ec.marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruitᚄ(ctx, field.Selections, res)
+	return ec.marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruitᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_Fruit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -971,9 +972,9 @@ func (ec *executionContext) _Query_Fruit(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*db.Fruit)
+	res := resTmp.(*entity.Fruit)
 	fc.Result = res
-	return ec.marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruit(ctx, field.Selections, res)
+	return ec.marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1170,9 +1171,9 @@ func (ec *executionContext) _Rack_CustomFields(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*db.CustomFields)
+	res := resTmp.(*entity.CustomFields)
 	fc.Result = res
-	return ec.marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐCustomFields(ctx, field.Selections, res)
+	return ec.marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Role_Id(ctx context.Context, field graphql.CollectedField, obj *Role) (ret graphql.Marshaler) {
@@ -2367,7 +2368,7 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 var customFieldsImplementors = []string{"CustomFields"}
 
-func (ec *executionContext) _CustomFields(ctx context.Context, sel ast.SelectionSet, obj *db.CustomFields) graphql.Marshaler {
+func (ec *executionContext) _CustomFields(ctx context.Context, sel ast.SelectionSet, obj *entity.CustomFields) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, customFieldsImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2395,7 +2396,7 @@ func (ec *executionContext) _CustomFields(ctx context.Context, sel ast.Selection
 
 var detailImplementors = []string{"Detail"}
 
-func (ec *executionContext) _Detail(ctx context.Context, sel ast.SelectionSet, obj *db.Detail) graphql.Marshaler {
+func (ec *executionContext) _Detail(ctx context.Context, sel ast.SelectionSet, obj *entity.Detail) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, detailImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2426,7 +2427,7 @@ func (ec *executionContext) _Detail(ctx context.Context, sel ast.SelectionSet, o
 
 var fruitImplementors = []string{"Fruit"}
 
-func (ec *executionContext) _Fruit(ctx context.Context, sel ast.SelectionSet, obj *db.Fruit) graphql.Marshaler {
+func (ec *executionContext) _Fruit(ctx context.Context, sel ast.SelectionSet, obj *entity.Fruit) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, fruitImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2496,7 +2497,7 @@ func (ec *executionContext) _Fruit(ctx context.Context, sel ast.SelectionSet, ob
 
 var levelImplementors = []string{"Level"}
 
-func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, obj *db.Level) graphql.Marshaler {
+func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, obj *entity.Level) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, levelImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2928,11 +2929,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruit(ctx context.Context, sel ast.SelectionSet, v db.Fruit) graphql.Marshaler {
+func (ec *executionContext) marshalNFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx context.Context, sel ast.SelectionSet, v entity.Fruit) graphql.Marshaler {
 	return ec._Fruit(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruitᚄ(ctx context.Context, sel ast.SelectionSet, v []db.Fruit) graphql.Marshaler {
+func (ec *executionContext) marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruitᚄ(ctx context.Context, sel ast.SelectionSet, v []entity.Fruit) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2956,7 +2957,7 @@ func (ec *executionContext) marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtg
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruit(ctx, sel, v[i])
+			ret[i] = ec.marshalNFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3260,33 +3261,33 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOCustomFields2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐCustomFields(ctx context.Context, sel ast.SelectionSet, v db.CustomFields) graphql.Marshaler {
+func (ec *executionContext) marshalOCustomFields2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx context.Context, sel ast.SelectionSet, v entity.CustomFields) graphql.Marshaler {
 	return ec._CustomFields(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐCustomFields(ctx context.Context, sel ast.SelectionSet, v *db.CustomFields) graphql.Marshaler {
+func (ec *executionContext) marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx context.Context, sel ast.SelectionSet, v *entity.CustomFields) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CustomFields(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalODetail2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐDetail(ctx context.Context, sel ast.SelectionSet, v db.Detail) graphql.Marshaler {
+func (ec *executionContext) marshalODetail2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐDetail(ctx context.Context, sel ast.SelectionSet, v entity.Detail) graphql.Marshaler {
 	return ec._Detail(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalODetail2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐDetail(ctx context.Context, sel ast.SelectionSet, v *db.Detail) graphql.Marshaler {
+func (ec *executionContext) marshalODetail2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐDetail(ctx context.Context, sel ast.SelectionSet, v *entity.Detail) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Detail(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruit(ctx context.Context, sel ast.SelectionSet, v db.Fruit) graphql.Marshaler {
+func (ec *executionContext) marshalOFruit2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx context.Context, sel ast.SelectionSet, v entity.Fruit) graphql.Marshaler {
 	return ec._Fruit(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐFruit(ctx context.Context, sel ast.SelectionSet, v *db.Fruit) graphql.Marshaler {
+func (ec *executionContext) marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx context.Context, sel ast.SelectionSet, v *entity.Fruit) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3324,11 +3325,11 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOLevel2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐLevel(ctx context.Context, sel ast.SelectionSet, v db.Level) graphql.Marshaler {
+func (ec *executionContext) marshalOLevel2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐLevel(ctx context.Context, sel ast.SelectionSet, v entity.Level) graphql.Marshaler {
 	return ec._Level(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋdatasourcesᚋdbᚐLevel(ctx context.Context, sel ast.SelectionSet, v *db.Level) graphql.Marshaler {
+func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐLevel(ctx context.Context, sel ast.SelectionSet, v *entity.Level) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
