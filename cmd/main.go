@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/varunturlapati/vtgqlgen/datasource/db" // update the username
+	ds "github.com/varunturlapati/vtgqlgen/datasource"
+	"github.com/varunturlapati/vtgqlgen/datasource/db"
 	"github.com/varunturlapati/vtgqlgen/gqlgen"        // update the username
 )
 
@@ -19,7 +20,7 @@ func main() {
 	// defer dbObj.Close()
 
 	// initialize the repository
-	repo := db.NewRepository(dbObj)
+	repo := ds.NewRepository(dbObj)
 
 	// configure the server
 	mux := http.NewServeMux()

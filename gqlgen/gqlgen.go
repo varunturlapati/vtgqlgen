@@ -5,11 +5,11 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 
-	"github.com/varunturlapati/vtgqlgen/datasource/db"
+	ds "github.com/varunturlapati/vtgqlgen/datasource"
 )
 
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(repo db.Repository) http.Handler {
+func NewHandler(repo ds.Repository) http.Handler {
 
 	return handler.GraphQL(NewExecutableSchema(Config{
 		Resolvers: &Resolver{

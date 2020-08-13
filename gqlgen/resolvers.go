@@ -8,7 +8,7 @@ import (
 
 	gql "github.com/graph-gophers/graphql-go"
 
-	"github.com/varunturlapati/vtgqlgen/datasource/db"
+	ds "github.com/varunturlapati/vtgqlgen/datasource"
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
@@ -23,7 +23,7 @@ type Fruit struct {
 }
 
 type Resolver struct {
-	Repository db.Repository
+	Repository ds.Repository
 }
 
 func (r *queryResolver) Fruits(ctx context.Context) ([]entity.Fruit, error) {

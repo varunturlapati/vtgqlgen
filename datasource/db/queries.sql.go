@@ -2,13 +2,8 @@ package db
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
+	"log"
 )
 
 const (
@@ -147,53 +142,3 @@ func (q *Queries) ListLevels(ctx context.Context) ([]entity.Level, error) {
 	return fs, err
 }
 
-func (q *Queries) GetRack(ctx context.Context, id int) (entity.ServerRack, error) {
-	var rack entity.ServerRack
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/%v/", id))
-	if err != nil {
-		return rack, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return rack, err
-	}
-	err = json.Unmarshal(body, &rack)
-	if err != nil {
-		return rack, err
-	}
-	return rack, nil
-}
-
-func (q *Queries) ListRacks(ctx context.Context) ([]entity.ServerRack, error) {
-	var res Result
-	var racks []entity.ServerRack
-	resp, err := http.Get("http://localhost:8000/api/dcim/racks/")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, elem := range res.Results {
-		tmpRack := entity.ServerRack{
-			Id:   elem.Id,
-			Name: elem.Name,
-			CustomFields: entity.CustomFields{
-				RblxRackId:     elem.CustomFields.RblxRackId,
-				DesignRevision: elem.CustomFields.DesignRevision,
-				CageId:         elem.CustomFields.CageId,
-			},
-			Created: elem.Created,
-		}
-		racks = append(racks, tmpRack)
-	}
-	return racks, nil
-}
