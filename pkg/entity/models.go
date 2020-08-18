@@ -4,10 +4,6 @@ type Fruit struct {
 	Id       int
 	Name     string
 	Quantity int
-	Color    string
-	Level    string
-	X        Detail
-	Rack     ServerRack
 }
 
 type Detail struct {
@@ -22,7 +18,7 @@ type Level struct {
 	Level string
 }
 
-type ServerRack struct {
+type Rack struct {
 	Id           int64
 	Name         string
 	CustomFields CustomFields `json:"custom_fields"`

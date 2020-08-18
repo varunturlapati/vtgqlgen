@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/varunturlapati/vtgqlgen/dataloaders"
 	"net/http"
 	"os"
 
@@ -21,11 +22,15 @@ func main() {
 
 	// initialize the repository
 	repo := ds.NewRepository(dbObj)
+	// initialize the dataloaders
+	dl := dataloaders.NewRetriever()
 
 	// configure the server
 	mux := http.NewServeMux()
 	mux.Handle("/", gqlgen.NewPlaygroundHandler("/query"))
-	mux.Handle("/query", gqlgen.NewHandler(repo))
+	dlMiddleware := dataloaders.Middleware(repo)
+	queryHandler := gqlgen.NewHandler(repo, dl)
+	mux.Handle("/query", dlMiddleware(queryHandler))
 
 	// run the server
 	port := ":7777"

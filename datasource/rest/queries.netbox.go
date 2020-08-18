@@ -10,27 +10,27 @@ import (
 	"net/http"
 )
 
-func (r *RestRequests) GetRack(ctx context.Context, id int) (entity.ServerRack, error) {
-	var rack entity.ServerRack
+func (r *RestRequests) GetRack(ctx context.Context, id int) (*entity.Rack, error) {
+	var rack entity.Rack
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/%v/", id))
 	if err != nil {
-		return rack, err
+		return &rack, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return rack, err
+		return &rack, err
 	}
 	err = json.Unmarshal(body, &rack)
 	if err != nil {
-		return rack, err
+		return &rack, err
 	}
-	return rack, nil
+	return &rack, nil
 }
 
-func (r *RestRequests) ListRacks(ctx context.Context) ([]entity.ServerRack, error) {
+func (r *RestRequests) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
 	var res db.Result
-	var racks []entity.ServerRack
+	var racks []*entity.Rack
 	//resp, err := http.Get("http://localhost:8000/api/dcim/racks/")
 	nreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8000/api/dcim/racks/", nil)
 	client := &http.Client{}
@@ -51,7 +51,7 @@ func (r *RestRequests) ListRacks(ctx context.Context) ([]entity.ServerRack, erro
 	}
 
 	for _, elem := range res.Results {
-		tmpRack := entity.ServerRack{
+		tmpRack := &entity.Rack{
 			Id:   elem.Id,
 			Name: elem.Name,
 			CustomFields: entity.CustomFields{
@@ -64,4 +64,23 @@ func (r *RestRequests) ListRacks(ctx context.Context) ([]entity.ServerRack, erro
 		racks = append(racks, tmpRack)
 	}
 	return racks, nil
+}
+
+type ListRacksByFruitIDsRow entity.Rack
+
+func (r *RestRequests) ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]ListRacksByFruitIDsRow, error) {
+	var retList []ListRacksByFruitIDsRow
+	for _, fid := range fruitIDs {
+		res, err := r.GetRack(ctx, fid)
+		if err != nil {
+			return nil, err
+		}
+		var tmp ListRacksByFruitIDsRow
+		tmp.Id = res.Id
+		tmp.Name = res.Name
+		tmp.Created = res.Created
+		tmp.CustomFields = res.CustomFields
+		retList = append(retList, tmp)
+	}
+	return retList, nil
 }

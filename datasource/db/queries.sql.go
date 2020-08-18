@@ -47,29 +47,29 @@ type GetLevelParams struct {
 
 type Result struct {
 	Count   int                 `json:"count"`
-	Results []entity.ServerRack `json:"results"`
+	Results []entity.Rack `json:"results"`
 }
 
-func (q *Queries) GetFruit(ctx context.Context, id int) (entity.Fruit, error) {
+func (q *Queries) GetFruit(ctx context.Context, id int) (*entity.Fruit, error) {
 	row := q.db.QueryRowContext(ctx, getFruit, id)
 	var f entity.Fruit
 	err := row.Scan(&f.Id, &f.Name, &f.Quantity)
-	return f, err
+	return &f, err
 }
 
-func (q *Queries) ListFruits(ctx context.Context) ([]entity.Fruit, error) {
+func (q *Queries) ListFruits(ctx context.Context) ([]*entity.Fruit, error) {
 	rows, err := q.db.QueryContext(ctx, listFruits)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []entity.Fruit
+	var fs []*entity.Fruit
 	for rows.Next() {
 		var f entity.Fruit
 		if err := rows.Scan(&f.Id, &f.Name, &f.Quantity); err != nil {
 			return nil, err
 		}
-		fs = append(fs, f)
+		fs = append(fs, &f)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -80,28 +80,28 @@ func (q *Queries) ListFruits(ctx context.Context) ([]entity.Fruit, error) {
 	return fs, err
 }
 
-func (q *Queries) GetDetail(ctx context.Context, fruitName string) (entity.Detail, error) {
+func (q *Queries) GetDetail(ctx context.Context, fruitName string) (*entity.Detail, error) {
 	log.Println(fruitName)
 	row := q.db.QueryRowContext(ctx, getDetail, fruitName)
 	var f entity.Detail
 	err := row.Scan(&f.Id, &f.Name, &f.Color, &f.Taste)
 	log.Printf("Queries.GetDetail result: f is %+v\nerr is %v\n", f, err)
-	return f, err
+	return &f, err
 }
 
-func (q *Queries) ListDetails(ctx context.Context) ([]entity.Detail, error) {
+func (q *Queries) ListDetails(ctx context.Context) ([]*entity.Detail, error) {
 	rows, err := q.db.QueryContext(ctx, listDetails)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []entity.Detail
+	var fs []*entity.Detail
 	for rows.Next() {
 		var f entity.Detail
 		if err := rows.Scan(&f.Id, &f.Name, &f.Color, &f.Taste); err != nil {
 			return nil, err
 		}
-		fs = append(fs, f)
+		fs = append(fs, &f)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -112,26 +112,26 @@ func (q *Queries) ListDetails(ctx context.Context) ([]entity.Detail, error) {
 	return fs, err
 }
 
-func (q *Queries) GetLevel(ctx context.Context, color string) (entity.Level, error) {
+func (q *Queries) GetLevel(ctx context.Context, color string) (*entity.Level, error) {
 	row := q.db.QueryRowContext(ctx, getLevel, color)
 	var f entity.Level
 	err := row.Scan(&f.Color, &f.Level)
-	return f, err
+	return &f, err
 }
 
-func (q *Queries) ListLevels(ctx context.Context) ([]entity.Level, error) {
+func (q *Queries) ListLevels(ctx context.Context) ([]*entity.Level, error) {
 	rows, err := q.db.QueryContext(ctx, listLevels)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var fs []entity.Level
+	var fs []*entity.Level
 	for rows.Next() {
 		var f entity.Level
 		if err := rows.Scan(&f.Color, &f.Level); err != nil {
 			return nil, err
 		}
-		fs = append(fs, f)
+		fs = append(fs, &f)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -140,5 +140,23 @@ func (q *Queries) ListLevels(ctx context.Context) ([]entity.Level, error) {
 		return nil, err
 	}
 	return fs, err
+}
+
+type ListFruitsByRackIDsRow entity.Fruit
+
+func (q *Queries) ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]ListFruitsByRackIDsRow, error) {
+	var retList []ListFruitsByRackIDsRow
+	for _, rid := range rackIDs {
+		res, err := q.GetFruit(ctx, rid)
+		if err != nil {
+			return nil, err
+		}
+		var tmp ListFruitsByRackIDsRow
+		tmp.Id = res.Id
+		tmp.Name = res.Name
+		tmp.Quantity = res.Quantity
+		retList = append(retList, tmp)
+	}
+	return retList, nil
 }
 

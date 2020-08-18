@@ -1,0 +1,33 @@
+query {
+  Fruit (Id:12) {
+    Id
+    Quantity
+    Detail {
+      Taste
+    }
+    Rack {
+      Created
+      Name
+      Id
+      CustomFields {
+        RblxRackId
+      }
+    }
+  }
+}
+
+query {
+  Rack(Id: 11) {
+    Fruit {
+      Id
+      Detail {
+        Color
+        Name
+      }
+    }
+    CustomFields {
+      RblxRackId
+    }
+    Id
+  }
+}

@@ -2,12 +2,14 @@
 
 type Query {
     Fruits: [Fruit!]!
-    Fruit(Id: ID!): Fruit
+    Fruit(Id: Int!): Fruit
+    Racks: [Rack!]!
+    Rack(Id: Int!): Rack
 }
 
 # Define what the queries are capable of:
 type Fruit {
-    Id: ID!
+    Id: Int!
     Name: String!
     Quantity: Int!
     Detail: Detail
@@ -28,6 +30,7 @@ type Rack {
     Name: String!
     Created: String
     CustomFields: CustomFields
+    Fruit: Fruit
 }
 type CustomFields {
     RblxRackId: Int
@@ -39,6 +42,6 @@ type Status {
     Value: Int
 }
 type Role {
-    Id: ID!
+    Id: Int!
     Name: String
 }
