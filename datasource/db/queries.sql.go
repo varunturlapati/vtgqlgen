@@ -31,6 +31,18 @@ where color = ?
 SELECT color, level FROM colorkey
 ORDER BY color
 `
+	createFruit = `-- name: CreateFruit: one
+INSERT INTO fruits (name, quantity)
+VALUES (?, ?)
+`
+	updateFruit = `-- name: UpdateFruit: one
+UPDATE fruits
+SET name = ?, quantity = ?
+WHERE id = ?
+`
+	deleteFruit = `-- name: DeleteFruit: one
+DELETE FROM fruits
+WHERE id = ?`
 )
 
 type GetFruitParams struct {
@@ -78,6 +90,27 @@ func (q *Queries) ListFruits(ctx context.Context) ([]*entity.Fruit, error) {
 		return nil, err
 	}
 	return fs, err
+}
+
+func (q *Queries) CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error) {
+	row := q.db.QueryRowContext(ctx, createFruit, arg.Name, arg.Quantity)
+	var f entity.Fruit
+	err := row.Scan(&f.Id, &f.Name, &f.Quantity)
+	return &f, err
+}
+
+func (q *Queries) UpdateFruit(ctx context.Context, arg *entity.UpdateFruitParams) (*entity.Fruit, error) {
+	row := q.db.QueryRowContext(ctx, updateFruit, arg.Name, arg.Quantity, arg.Id)
+	var f entity.Fruit
+	err := row.Scan(&f.Id, &f.Name, &f.Quantity)
+	return &f, err
+}
+
+func (q *Queries) DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error) {
+	row := q.db.QueryRowContext(ctx, deleteFruit, id)
+	var f entity.Fruit
+	err := row.Scan(&f.Id, &f.Name, &f.Quantity)
+	return &f, err
 }
 
 func (q *Queries) GetDetail(ctx context.Context, fruitName string) (*entity.Detail, error) {

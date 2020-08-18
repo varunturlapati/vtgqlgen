@@ -45,3 +45,13 @@ type Role {
     Id: Int!
     Name: String
 }
+type Mutation {
+    CreateFruit(data: FruitInput!): Fruit!
+    UpdateFruit(id: Int!, data: FruitInput!): Fruit!
+    DeleteFruit(id: Int!): Fruit!
+}
+
+input FruitInput {
+    Name: String!
+    Quantity: Int!
+}
