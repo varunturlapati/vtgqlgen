@@ -12,10 +12,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/vektah/gqlparser/v2"
-	"github.com/vektah/gqlparser/v2/ast"
-
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
+	gqlparser "github.com/vektah/gqlparser/v2"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -38,6 +37,7 @@ type Config struct {
 type ResolverRoot interface {
 	Fruit() FruitResolver
 	Query() QueryResolver
+	Rack() RackResolver
 }
 
 type DirectiveRoot struct {
@@ -73,12 +73,15 @@ type ComplexityRoot struct {
 	Query struct {
 		Fruit  func(childComplexity int, id int) int
 		Fruits func(childComplexity int) int
+		Rack   func(childComplexity int, id int) int
+		Racks  func(childComplexity int) int
 	}
 
 	Rack struct {
 		Created      func(childComplexity int) int
 		CustomFields func(childComplexity int) int
-		ID           func(childComplexity int) int
+		Fruit        func(childComplexity int) int
+		Id           func(childComplexity int) int
 		Name         func(childComplexity int) int
 	}
 
@@ -96,11 +99,16 @@ type ComplexityRoot struct {
 type FruitResolver interface {
 	Detail(ctx context.Context, obj *entity.Fruit) (*entity.Detail, error)
 	Level(ctx context.Context, obj *entity.Fruit) (*entity.Level, error)
-	Rack(ctx context.Context, obj *entity.Fruit) (*Rack, error)
+	Rack(ctx context.Context, obj *entity.Fruit) (*entity.Rack, error)
 }
 type QueryResolver interface {
 	Fruits(ctx context.Context) ([]entity.Fruit, error)
 	Fruit(ctx context.Context, id int) (*entity.Fruit, error)
+	Racks(ctx context.Context) ([]entity.Rack, error)
+	Rack(ctx context.Context, id int) (*entity.Rack, error)
+}
+type RackResolver interface {
+	Fruit(ctx context.Context, obj *entity.Rack) (*entity.Fruit, error)
 }
 
 type executableSchema struct {
@@ -235,6 +243,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Fruits(childComplexity), true
 
+	case "Query.Rack":
+		if e.complexity.Query.Rack == nil {
+			break
+		}
+
+		args, err := ec.field_Query_Rack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Rack(childComplexity, args["Id"].(int)), true
+
+	case "Query.Racks":
+		if e.complexity.Query.Racks == nil {
+			break
+		}
+
+		return e.complexity.Query.Racks(childComplexity), true
+
 	case "Rack.Created":
 		if e.complexity.Rack.Created == nil {
 			break
@@ -249,12 +276,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Rack.CustomFields(childComplexity), true
 
-	case "Rack.Id":
-		if e.complexity.Rack.ID == nil {
+	case "Rack.Fruit":
+		if e.complexity.Rack.Fruit == nil {
 			break
 		}
 
-		return e.complexity.Rack.ID(childComplexity), true
+		return e.complexity.Rack.Fruit(childComplexity), true
+
+	case "Rack.Id":
+		if e.complexity.Rack.Id == nil {
+			break
+		}
+
+		return e.complexity.Rack.Id(childComplexity), true
 
 	case "Rack.Name":
 		if e.complexity.Rack.Name == nil {
@@ -345,12 +379,14 @@ var sources = []*ast.Source{
 
 type Query {
     Fruits: [Fruit!]!
-    Fruit(Id: ID!): Fruit
+    Fruit(Id: Int!): Fruit
+    Racks: [Rack!]!
+    Rack(Id: Int!): Rack
 }
 
 # Define what the queries are capable of:
 type Fruit {
-    Id: ID!
+    Id: Int!
     Name: String!
     Quantity: Int!
     Detail: Detail
@@ -371,6 +407,7 @@ type Rack {
     Name: String!
     Created: String
     CustomFields: CustomFields
+    Fruit: Fruit
 }
 type CustomFields {
     RblxRackId: Int
@@ -382,7 +419,7 @@ type Status {
     Value: Int
 }
 type Role {
-    Id: ID!
+    Id: Int!
     Name: String
 }`, BuiltIn: false},
 }
@@ -397,7 +434,21 @@ func (ec *executionContext) field_Query_Fruit_args(ctx context.Context, rawArgs 
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["Id"]; ok {
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_Rack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["Id"]; ok {
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -676,7 +727,7 @@ func (ec *executionContext) _Fruit_Id(ctx context.Context, field graphql.Collect
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Fruit_Name(ctx context.Context, field graphql.CollectedField, obj *entity.Fruit) (ret graphql.Marshaler) {
@@ -835,9 +886,9 @@ func (ec *executionContext) _Fruit_Rack(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Rack)
+	res := resTmp.(*entity.Rack)
 	fc.Result = res
-	return ec.marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐRack(ctx, field.Selections, res)
+	return ec.marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Level_Color(ctx context.Context, field graphql.CollectedField, obj *entity.Level) (ret graphql.Marshaler) {
@@ -977,6 +1028,78 @@ func (ec *executionContext) _Query_Fruit(ctx context.Context, field graphql.Coll
 	return ec.marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_Racks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Racks(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]entity.Rack)
+	fc.Result = res
+	return ec.marshalNRack2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRackᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_Rack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_Rack_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Rack(rctx, args["Id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Rack)
+	fc.Result = res
+	return ec.marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1046,7 +1169,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Rack_Id(ctx context.Context, field graphql.CollectedField, obj *Rack) (ret graphql.Marshaler) {
+func (ec *executionContext) _Rack_Id(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1063,7 +1186,7 @@ func (ec *executionContext) _Rack_Id(ctx context.Context, field graphql.Collecte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Id, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1075,12 +1198,12 @@ func (ec *executionContext) _Rack_Id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Rack_Name(ctx context.Context, field graphql.CollectedField, obj *Rack) (ret graphql.Marshaler) {
+func (ec *executionContext) _Rack_Name(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1114,7 +1237,7 @@ func (ec *executionContext) _Rack_Name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Rack_Created(ctx context.Context, field graphql.CollectedField, obj *Rack) (ret graphql.Marshaler) {
+func (ec *executionContext) _Rack_Created(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1140,12 +1263,12 @@ func (ec *executionContext) _Rack_Created(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Rack_CustomFields(ctx context.Context, field graphql.CollectedField, obj *Rack) (ret graphql.Marshaler) {
+func (ec *executionContext) _Rack_CustomFields(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1171,9 +1294,40 @@ func (ec *executionContext) _Rack_CustomFields(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*entity.CustomFields)
+	res := resTmp.(entity.CustomFields)
 	fc.Result = res
-	return ec.marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx, field.Selections, res)
+	return ec.marshalOCustomFields2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Rack_Fruit(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Rack",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Rack().Fruit(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Fruit)
+	fc.Result = res
+	return ec.marshalOFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Role_Id(ctx context.Context, field graphql.CollectedField, obj *Role) (ret graphql.Marshaler) {
@@ -1207,7 +1361,7 @@ func (ec *executionContext) _Role_Id(ctx context.Context, field graphql.Collecte
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Role_Name(ctx context.Context, field graphql.CollectedField, obj *Role) (ret graphql.Marshaler) {
@@ -2564,6 +2718,31 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_Fruit(ctx, field)
 				return res
 			})
+		case "Racks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_Racks(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "Rack":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_Rack(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -2581,7 +2760,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var rackImplementors = []string{"Rack"}
 
-func (ec *executionContext) _Rack(ctx context.Context, sel ast.SelectionSet, obj *Rack) graphql.Marshaler {
+func (ec *executionContext) _Rack(ctx context.Context, sel ast.SelectionSet, obj *entity.Rack) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, rackImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2593,17 +2772,28 @@ func (ec *executionContext) _Rack(ctx context.Context, sel ast.SelectionSet, obj
 		case "Id":
 			out.Values[i] = ec._Rack_Id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Name":
 			out.Values[i] = ec._Rack_Name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Created":
 			out.Values[i] = ec._Rack_Created(ctx, field, obj)
 		case "CustomFields":
 			out.Values[i] = ec._Rack_CustomFields(ctx, field, obj)
+		case "Fruit":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Rack_Fruit(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2970,20 +3160,6 @@ func (ec *executionContext) marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtg
 	return ret
 }
 
-func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
-	return graphql.UnmarshalInt(v)
-}
-
-func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalInt(v)
 }
@@ -2996,6 +3172,61 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	return graphql.UnmarshalInt64(v)
+}
+
+func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	res := graphql.MarshalInt64(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNRack2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx context.Context, sel ast.SelectionSet, v entity.Rack) graphql.Marshaler {
+	return ec._Rack(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRack2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRackᚄ(ctx context.Context, sel ast.SelectionSet, v []entity.Rack) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRack2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -3265,13 +3496,6 @@ func (ec *executionContext) marshalOCustomFields2githubᚗcomᚋvarunturlapati�
 	return ec._CustomFields(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOCustomFields2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx context.Context, sel ast.SelectionSet, v *entity.CustomFields) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CustomFields(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalODetail2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐDetail(ctx context.Context, sel ast.SelectionSet, v entity.Detail) graphql.Marshaler {
 	return ec._Detail(ctx, sel, &v)
 }
@@ -3336,11 +3560,11 @@ func (ec *executionContext) marshalOLevel2ᚖgithubᚗcomᚋvarunturlapatiᚋvtg
 	return ec._Level(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalORack2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐRack(ctx context.Context, sel ast.SelectionSet, v Rack) graphql.Marshaler {
+func (ec *executionContext) marshalORack2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx context.Context, sel ast.SelectionSet, v entity.Rack) graphql.Marshaler {
 	return ec._Rack(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐRack(ctx context.Context, sel ast.SelectionSet, v *Rack) graphql.Marshaler {
+func (ec *executionContext) marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx context.Context, sel ast.SelectionSet, v *entity.Rack) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

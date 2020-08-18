@@ -12,20 +12,23 @@ import (
 
 type Repository interface {
 	// fruit queries
-	GetFruit(ctx context.Context, id int) (entity.Fruit, error)
-	ListFruits(ctx context.Context) ([]entity.Fruit, error)
+	GetFruit(ctx context.Context, id int) (*entity.Fruit, error)
+	ListFruits(ctx context.Context) ([]*entity.Fruit, error)
 
 	// detail queries
-	GetDetail(ctx context.Context, name string) (entity.Detail, error)
-	ListDetails(ctx context.Context) ([]entity.Detail, error)
+	GetDetail(ctx context.Context, name string) (*entity.Detail, error)
+	ListDetails(ctx context.Context) ([]*entity.Detail, error)
 
 	// level queries
-	GetLevel(ctx context.Context, level string) (entity.Level, error)
-	ListLevels(ctx context.Context) ([]entity.Level, error)
+	GetLevel(ctx context.Context, level string) (*entity.Level, error)
+	ListLevels(ctx context.Context) ([]*entity.Level, error)
 
 	// rack queries
-	GetRack(ctx context.Context, id int) (entity.ServerRack, error)
-	ListRacks(ctx context.Context) ([]entity.ServerRack, error)
+	GetRack(ctx context.Context, id int) (*entity.Rack, error)
+	ListRacks(ctx context.Context) ([]*entity.Rack, error)
+
+	ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]r.ListRacksByFruitIDsRow, error)
+	ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]d.ListFruitsByRackIDsRow, error)
 }
 
 const (
