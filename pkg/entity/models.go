@@ -29,3 +29,14 @@ type CustomFields struct {
 	DesignRevision string `json:"design_revision"`
 	CageId         string `json:"cage_id"`
 }
+
+type CreateFruitParams struct {
+	Name string
+	Quantity int
+}
+
+type UpdateFruitParams struct {
+	Id int
+	Name string
+	Quantity int
+}

@@ -31,3 +31,12 @@ query {
     Id
   }
 }
+
+mutation CreateFruit($data: FruitInput!) {
+  CreateFruit(data:$data) {
+    Id
+    Name
+    Quantity
+  }
+}
+

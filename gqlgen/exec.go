@@ -36,6 +36,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Fruit() FruitResolver
+	Mutation() MutationResolver
 	Query() QueryResolver
 	Rack() RackResolver
 }
@@ -70,6 +71,12 @@ type ComplexityRoot struct {
 		Level func(childComplexity int) int
 	}
 
+	Mutation struct {
+		CreateFruit func(childComplexity int, data FruitInput) int
+		DeleteFruit func(childComplexity int, id int) int
+		UpdateFruit func(childComplexity int, id int, data FruitInput) int
+	}
+
 	Query struct {
 		Fruit  func(childComplexity int, id int) int
 		Fruits func(childComplexity int) int
@@ -100,6 +107,11 @@ type FruitResolver interface {
 	Detail(ctx context.Context, obj *entity.Fruit) (*entity.Detail, error)
 	Level(ctx context.Context, obj *entity.Fruit) (*entity.Level, error)
 	Rack(ctx context.Context, obj *entity.Fruit) (*entity.Rack, error)
+}
+type MutationResolver interface {
+	CreateFruit(ctx context.Context, data FruitInput) (*entity.Fruit, error)
+	UpdateFruit(ctx context.Context, id int, data FruitInput) (*entity.Fruit, error)
+	DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error)
 }
 type QueryResolver interface {
 	Fruits(ctx context.Context) ([]entity.Fruit, error)
@@ -223,6 +235,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Level.Level(childComplexity), true
+
+	case "Mutation.CreateFruit":
+		if e.complexity.Mutation.CreateFruit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateFruit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateFruit(childComplexity, args["data"].(FruitInput)), true
+
+	case "Mutation.DeleteFruit":
+		if e.complexity.Mutation.DeleteFruit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteFruit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteFruit(childComplexity, args["id"].(int)), true
+
+	case "Mutation.UpdateFruit":
+		if e.complexity.Mutation.UpdateFruit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateFruit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateFruit(childComplexity, args["id"].(int), args["data"].(FruitInput)), true
 
 	case "Query.Fruit":
 		if e.complexity.Query.Fruit == nil {
@@ -349,6 +397,20 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				Data: buf.Bytes(),
 			}
 		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -421,6 +483,16 @@ type Status {
 type Role {
     Id: Int!
     Name: String
+}
+type Mutation {
+    CreateFruit(data: FruitInput!): Fruit!
+    UpdateFruit(id: Int!, data: FruitInput!): Fruit!
+    DeleteFruit(id: Int!): Fruit!
+}
+
+input FruitInput {
+    Name: String!
+    Quantity: Int!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -428,6 +500,56 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_CreateFruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 FruitInput
+	if tmp, ok := rawArgs["data"]; ok {
+		arg0, err = ec.unmarshalNFruitInput2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐFruitInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_DeleteFruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateFruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 FruitInput
+	if tmp, ok := rawArgs["data"]; ok {
+		arg1, err = ec.unmarshalNFruitInput2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐFruitInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Query_Fruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -954,6 +1076,129 @@ func (ec *executionContext) _Level_Level(ctx context.Context, field graphql.Coll
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_CreateFruit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_CreateFruit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateFruit(rctx, args["data"].(FruitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Fruit)
+	fc.Result = res
+	return ec.marshalNFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_UpdateFruit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_UpdateFruit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateFruit(rctx, args["id"].(int), args["data"].(FruitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Fruit)
+	fc.Result = res
+	return ec.marshalNFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_DeleteFruit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_DeleteFruit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteFruit(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Fruit)
+	fc.Result = res
+	return ec.marshalNFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_Fruits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2512,6 +2757,30 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputFruitInput(ctx context.Context, obj interface{}) (FruitInput, error) {
+	var it FruitInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "Name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Quantity":
+			var err error
+			it.Quantity, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2667,6 +2936,47 @@ func (ec *executionContext) _Level(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "Level":
 			out.Values[i] = ec._Level_Level(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "CreateFruit":
+			out.Values[i] = ec._Mutation_CreateFruit(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "UpdateFruit":
+			out.Values[i] = ec._Mutation_UpdateFruit(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "DeleteFruit":
+			out.Values[i] = ec._Mutation_DeleteFruit(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3158,6 +3468,20 @@ func (ec *executionContext) marshalNFruit2ᚕgithubᚗcomᚋvarunturlapatiᚋvtg
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNFruit2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐFruit(ctx context.Context, sel ast.SelectionSet, v *entity.Fruit) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Fruit(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFruitInput2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋgqlgenᚐFruitInput(ctx context.Context, v interface{}) (FruitInput, error) {
+	return ec.unmarshalInputFruitInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {

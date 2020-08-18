@@ -68,12 +68,49 @@ func (r *rackResolver) Fruit(ctx context.Context, obj *entity.Rack) (*entity.Fru
 // Fruit returns FruitResolver implementation.
 func (r *Resolver) Fruit() FruitResolver { return &fruitResolver{r} }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
 // Rack returns RackResolver implementation.
 func (r *Resolver) Rack() RackResolver { return &rackResolver{r} }
 
+// Query returns QueryResolver implementation.
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+// Mutation returns an implementation of the MutationResolver interface.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
+func (r *mutationResolver) CreateFruit(ctx context.Context, data FruitInput) (*entity.Fruit, error) {
+	fruit, err := r.Repository.CreateFruit(ctx, &entity.CreateFruitParams{
+		Name: data.Name,
+		Quantity: data.Quantity,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fruit, nil
+}
+
+func (r *mutationResolver) UpdateFruit(ctx context.Context, id int, data FruitInput) (*entity.Fruit, error) {
+	fruit, err := r.Repository.UpdateFruit(ctx, &entity.UpdateFruitParams{
+		Id: id,
+		Name: data.Name,
+		Quantity: data.Quantity,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fruit, nil
+}
+
+func (r *mutationResolver) DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error) {
+	fruit, err := r.Repository.DeleteFruit(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return fruit, nil
+}
+
+
 type fruitResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
 type rackResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
+

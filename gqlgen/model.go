@@ -2,6 +2,11 @@
 
 package gqlgen
 
+type FruitInput struct {
+	Name     string `json:"Name"`
+	Quantity int    `json:"Quantity"`
+}
+
 type Role struct {
 	ID   int     `json:"Id"`
 	Name *string `json:"Name"`

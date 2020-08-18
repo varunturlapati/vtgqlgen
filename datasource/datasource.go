@@ -14,6 +14,9 @@ type Repository interface {
 	// fruit queries
 	GetFruit(ctx context.Context, id int) (*entity.Fruit, error)
 	ListFruits(ctx context.Context) ([]*entity.Fruit, error)
+	CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error)
+	UpdateFruit(ctx context.Context, arg *entity.UpdateFruitParams) (*entity.Fruit, error)
+	DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error)
 
 	// detail queries
 	GetDetail(ctx context.Context, name string) (*entity.Detail, error)
