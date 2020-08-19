@@ -23,7 +23,10 @@ type Rack struct {
 	Name         string
 	CustomFields CustomFields `json:"custom_fields"`
 	Created      string
+	Ipaddr       string
+	Live         bool
 }
+
 type CustomFields struct {
 	RblxRackId     int64  `json:"rblx_rack_id"`
 	DesignRevision string `json:"design_revision"`
@@ -31,12 +34,12 @@ type CustomFields struct {
 }
 
 type CreateFruitParams struct {
-	Name string
+	Name     string
 	Quantity int
 }
 
 type UpdateFruitParams struct {
-	Id int
-	Name string
+	Id       int
+	Name     string
 	Quantity int
 }

@@ -10,8 +10,8 @@ import (
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
-type Resolver struct{
-	Repository datasource.Repository
+type Resolver struct {
+	Repository  datasource.Repository
 	DataLoaders dataloaders.Retriever
 }
 
@@ -79,7 +79,7 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 func (r *mutationResolver) CreateFruit(ctx context.Context, data FruitInput) (*entity.Fruit, error) {
 	fruit, err := r.Repository.CreateFruit(ctx, &entity.CreateFruitParams{
-		Name: data.Name,
+		Name:     data.Name,
 		Quantity: data.Quantity,
 	})
 	if err != nil {
@@ -90,8 +90,8 @@ func (r *mutationResolver) CreateFruit(ctx context.Context, data FruitInput) (*e
 
 func (r *mutationResolver) UpdateFruit(ctx context.Context, id int, data FruitInput) (*entity.Fruit, error) {
 	fruit, err := r.Repository.UpdateFruit(ctx, &entity.UpdateFruitParams{
-		Id: id,
-		Name: data.Name,
+		Id:       id,
+		Name:     data.Name,
 		Quantity: data.Quantity,
 	})
 	if err != nil {
@@ -108,9 +108,7 @@ func (r *mutationResolver) DeleteFruit(ctx context.Context, id int) (*entity.Fru
 	return fruit, nil
 }
 
-
 type fruitResolver struct{ *Resolver }
 type rackResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
-

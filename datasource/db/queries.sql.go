@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
-	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 	"log"
+
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
 const (
@@ -42,7 +43,15 @@ WHERE id = ?
 `
 	deleteFruit = `-- name: DeleteFruit: one
 DELETE FROM fruits
-WHERE id = ?`
+WHERE id = ?
+`
+	getRack = `-- name: GetRack: one
+SELECT id, name, ipaddr, live FROM racks
+WHERE id = ?
+`
+	listRacks = `-- name: ListRacks: many
+SELECT id, name, ipaddr, live FROM racks
+`
 )
 
 type GetFruitParams struct {
@@ -58,7 +67,7 @@ type GetLevelParams struct {
 }
 
 type Result struct {
-	Count   int                 `json:"count"`
+	Count   int           `json:"count"`
 	Results []entity.Rack `json:"results"`
 }
 
@@ -175,6 +184,40 @@ func (q *Queries) ListLevels(ctx context.Context) ([]*entity.Level, error) {
 	return fs, err
 }
 
+func (q *Queries) GetRackFromDB(ctx context.Context, id int) (*entity.Rack, error) {
+	row := q.db.QueryRowContext(ctx, getRack, id)
+	var f entity.Rack
+	err := row.Scan(&f.Id, &f.Name, &f.Ipaddr, &f.Live)
+	return &f, err
+}
+
+func (q *Queries) ListRacksFromDB(ctx context.Context) ([]*entity.Rack, error) {
+	rows, err := q.db.QueryContext(ctx, listRacks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var fs []*entity.Rack
+	for rows.Next() {
+		var f entity.Rack
+		var nb *bool
+		if err := rows.Scan(&f.Id, &f.Name, &f.Ipaddr, &nb); err != nil {
+			return nil, err
+		}
+		if nb == nil {
+			f.Live = false
+		}
+		fs = append(fs, &f)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return fs, err
+}
+
 type ListFruitsByRackIDsRow entity.Fruit
 
 func (q *Queries) ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]ListFruitsByRackIDsRow, error) {
@@ -192,4 +235,3 @@ func (q *Queries) ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]Lis
 	}
 	return retList, nil
 }
-

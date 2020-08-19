@@ -89,6 +89,8 @@ type ComplexityRoot struct {
 		CustomFields func(childComplexity int) int
 		Fruit        func(childComplexity int) int
 		Id           func(childComplexity int) int
+		Ipaddr       func(childComplexity int) int
+		Live         func(childComplexity int) int
 		Name         func(childComplexity int) int
 	}
 
@@ -338,6 +340,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Rack.Id(childComplexity), true
 
+	case "Rack.IpAddr":
+		if e.complexity.Rack.Ipaddr == nil {
+			break
+		}
+
+		return e.complexity.Rack.Ipaddr(childComplexity), true
+
+	case "Rack.Live":
+		if e.complexity.Rack.Live == nil {
+			break
+		}
+
+		return e.complexity.Rack.Live(childComplexity), true
+
 	case "Rack.Name":
 		if e.complexity.Rack.Name == nil {
 			break
@@ -469,6 +485,8 @@ type Rack {
     Name: String!
     Created: String
     CustomFields: CustomFields
+    IpAddr: String
+    Live: Boolean
     Fruit: Fruit
 }
 type CustomFields {
@@ -1542,6 +1560,68 @@ func (ec *executionContext) _Rack_CustomFields(ctx context.Context, field graphq
 	res := resTmp.(entity.CustomFields)
 	fc.Result = res
 	return ec.marshalOCustomFields2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐCustomFields(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Rack_IpAddr(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Rack",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ipaddr, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Rack_Live(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Rack",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Live, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Rack_Fruit(ctx context.Context, field graphql.CollectedField, obj *entity.Rack) (ret graphql.Marshaler) {
@@ -3093,6 +3173,10 @@ func (ec *executionContext) _Rack(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Rack_Created(ctx, field, obj)
 		case "CustomFields":
 			out.Values[i] = ec._Rack_CustomFields(ctx, field, obj)
+		case "IpAddr":
+			out.Values[i] = ec._Rack_IpAddr(ctx, field, obj)
+		case "Live":
+			out.Values[i] = ec._Rack_Live(ctx, field, obj)
 		case "Fruit":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
