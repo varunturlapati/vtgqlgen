@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/varunturlapati/vtgqlgen/datasource/db"
-	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/varunturlapati/vtgqlgen/datasource/db"
+	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
 
-func (r *RestRequests) GetRack(ctx context.Context, id int) (*entity.Rack, error) {
+func (r *RestRequests) GetRackFromNetbox(ctx context.Context, id int) (*entity.Rack, error) {
 	var rack entity.Rack
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/%v/", id))
 	if err != nil {
@@ -28,7 +29,7 @@ func (r *RestRequests) GetRack(ctx context.Context, id int) (*entity.Rack, error
 	return &rack, nil
 }
 
-func (r *RestRequests) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
+func (r *RestRequests) ListRacksFromNetbox(ctx context.Context) ([]*entity.Rack, error) {
 	var res db.Result
 	var racks []*entity.Rack
 	//resp, err := http.Get("http://localhost:8000/api/dcim/racks/")
@@ -71,7 +72,7 @@ type ListRacksByFruitIDsRow entity.Rack
 func (r *RestRequests) ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]ListRacksByFruitIDsRow, error) {
 	var retList []ListRacksByFruitIDsRow
 	for _, fid := range fruitIDs {
-		res, err := r.GetRack(ctx, fid)
+		res, err := r.GetRackFromNetbox(ctx, fid)
 		if err != nil {
 			return nil, err
 		}

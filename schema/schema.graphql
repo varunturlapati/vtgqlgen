@@ -30,6 +30,8 @@ type Rack {
     Name: String!
     Created: String
     CustomFields: CustomFields
+    IpAddr: String
+    Live: Boolean
     Fruit: Fruit
 }
 type CustomFields {

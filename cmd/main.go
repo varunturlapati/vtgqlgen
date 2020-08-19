@@ -8,7 +8,7 @@ import (
 
 	ds "github.com/varunturlapati/vtgqlgen/datasource"
 	"github.com/varunturlapati/vtgqlgen/datasource/db"
-	"github.com/varunturlapati/vtgqlgen/gqlgen"        // update the username
+	"github.com/varunturlapati/vtgqlgen/gqlgen"
 )
 
 func main() {

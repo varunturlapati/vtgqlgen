@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
-
 type repoSvc struct {
 	*Queries
 	db *sql.DB

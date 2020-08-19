@@ -2,10 +2,10 @@ package rest
 
 type RTX interface {
 	/*
-	Get(context.Context, string, ...interface{}) (http.Response, error)
-	Post(context.Context, string, ...interface{}) (http.Response, error)
-	Put(context.Context, string, ...interface{}) (http.Response, error)
-	Delete(context.Context, string, ...interface{}) (bool, error)
+		Get(context.Context, string, ...interface{}) (http.Response, error)
+		Post(context.Context, string, ...interface{}) (http.Response, error)
+		Put(context.Context, string, ...interface{}) (http.Response, error)
+		Delete(context.Context, string, ...interface{}) (bool, error)
 	*/
 
 }
