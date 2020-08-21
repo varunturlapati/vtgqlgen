@@ -40,3 +40,16 @@ mutation CreateFruit($data: FruitInput!) {
   }
 }
 
+
+InfraDB Server model
+Server {
+  ID (this is going to be a bit weird to implement, what will own the idea of ID?)
+  HostName (InfraDB preferred, fallback to Netbox)
+  Environment (InfraDB logical environment)
+  SuperFarm (InfraDB)
+  ServerGroup (InfraDB)
+  RackNumber (Netbox)
+  Pod (Our netbox might have this info, or there might need to be some business logic to determine that)
+  DataCenter (Might want to prefer netbox when we can, but InfraDB will have C3PO resources like AWS)
+  IPAddresses (v4, v6, public, and private: Netbox and InfraDB will have this knowledge)
+}

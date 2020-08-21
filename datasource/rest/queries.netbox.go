@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/varunturlapati/vtgqlgen/datasource/db"
@@ -65,6 +66,69 @@ func (r *RestRequests) ListRacksFromNetbox(ctx context.Context) ([]*entity.Rack,
 		racks = append(racks, tmpRack)
 	}
 	return racks, nil
+}
+
+func (r *RestRequests) GetServerFromNetbox(ctx context.Context, id int) (*entity.Server, error) {
+	var Server entity.Server
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/devices/%v/", id))
+	if err != nil {
+		return &Server, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	//log.Printf("Netbox server response body is %v and error is %v\n", body, err)
+	if err != nil {
+		return &Server, err
+	}
+	err = json.Unmarshal(body, &Server)
+	log.Printf("Netbox server is %+v and json unmarshal error is %v\n", Server, err)
+	if err != nil {
+		return &Server, err
+	}
+
+	return &Server, nil
+}
+
+func (r *RestRequests) ListServersFromNetbox(ctx context.Context) ([]*entity.Server, error) {
+	var servers []*entity.Server
+	var res AllResults
+	//resp, err := http.Get("http://localhost:8000/api/dcim/Servers/")
+	nreq, _ := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8000/api/dcim/devices/", nil)
+	client := &http.Client{}
+	nresp, err := client.Do(nreq)
+	if err != nil {
+		return nil, err
+	}
+	defer nresp.Body.Close()
+	body, err := ioutil.ReadAll(nresp.Body)
+	// defer resp.Body.Close()
+	// body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	for _, elem := range res.Results {
+		var tmpRackName, tmpDispName string
+		tmpServer := elem.(map[string]interface{})
+		// log.Printf("TmpServer looks like %+v\n", tmpServer)
+		tmpDispName = tmpServer["display_name"].(string)
+		tmpId := tmpServer["id"].(float64)
+		tmpRack := tmpServer["rack"]
+		if tmpRack != nil {
+			tmpRackMap := tmpRack.(map[string]interface{})
+			tmpRackName = tmpRackMap["name"].(string)
+		}
+		retServer := &entity.Server{
+			Id: int(tmpId),
+			RackName: tmpRackName,
+			NetboxName: tmpDispName,
+		}
+		servers = append(servers, retServer)
+	}
+	return servers, nil
 }
 
 type ListRacksByFruitIDsRow entity.Rack

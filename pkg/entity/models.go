@@ -43,3 +43,13 @@ type UpdateFruitParams struct {
 	Name     string
 	Quantity int
 }
+
+type Server struct {
+	Id              int    `gorm:"type:int;primary_key;not null"`
+	HostName        string `gorm:"column:HostName;type:varchar(50);not null"`
+	NetboxName      string `json:"display_name" gorm:"-"`
+	RackName        string `gorm:"-"`
+	Status    string `gorm:"-"`
+	//ServerStatus    int    `gorm:"column:ServerStatus;type:int;foreignkey;null"`
+	PublicIpAddress string `gorm:"column:PublicIpAddress;type:varchar(50);not null"`
+}

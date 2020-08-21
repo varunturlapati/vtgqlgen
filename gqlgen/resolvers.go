@@ -4,7 +4,6 @@ package gqlgen
 
 import (
 	"context"
-
 	"github.com/varunturlapati/vtgqlgen/dataloaders"
 	"github.com/varunturlapati/vtgqlgen/datasource"
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
@@ -60,6 +59,26 @@ func (r *queryResolver) Rack(ctx context.Context, id int) (*entity.Rack, error) 
 	return r.Repository.GetRack(ctx, id)
 }
 
+func (r *queryResolver) Servers(ctx context.Context) ([]entity.Server, error) {
+	srvPtrs, err := r.Repository.ListServers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var servers []entity.Server
+	for _, p := range srvPtrs {
+		servers = append(servers, *p)
+	}
+	return servers, nil
+}
+
+func (r *queryResolver) ServerByName(ctx context.Context, name string) (*entity.Server, error) {
+	return r.Repository.GetServerByName(ctx, name)
+}
+
+func (r *queryResolver) ServerByID(ctx context.Context, id int) (*entity.Server, error) {
+	return r.Repository.GetServerById(ctx, id)
+}
+
 func (r *rackResolver) Fruit(ctx context.Context, obj *entity.Rack) (*entity.Fruit, error) {
 	// return r.Repository.GetFruit(ctx, int(obj.Id))
 	return r.DataLoaders.Retrieve(ctx).FruitByRackId.Load(int(obj.Id))
@@ -70,6 +89,11 @@ func (r *Resolver) Fruit() FruitResolver { return &fruitResolver{r} }
 
 // Rack returns RackResolver implementation.
 func (r *Resolver) Rack() RackResolver { return &rackResolver{r} }
+
+/*
+// Server returns ServerResolver implementation.
+func (r *Resolver) Server() ServerResolver { return &serverResolver{r} }
+*/
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
@@ -108,7 +132,14 @@ func (r *mutationResolver) DeleteFruit(ctx context.Context, id int) (*entity.Fru
 	return fruit, nil
 }
 
+/*
+func (r *serverResolver) ServerStatus(ctx context.Context, obj *entity.Server) (*string, error) {
+	return r.Repository.GetServerStatusById(ctx, obj.Id)
+}
+*/
+
 type fruitResolver struct{ *Resolver }
 type rackResolver struct{ *Resolver }
+type serverResolver struct { *Resolver }
 type queryResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }

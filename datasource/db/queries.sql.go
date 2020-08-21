@@ -52,6 +52,23 @@ WHERE id = ?
 	listRacks = `-- name: ListRacks: many
 SELECT id, name, ipaddr, live FROM racks
 `
+	// TODO - DB level handling of joins is a-OK?
+	getServerByName = `-- name: GetServerByName: one
+SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss
+WHERE s.serverstatus = ss.id AND s.hostname = ?
+`
+	getServerById = `-- name: GetServerById: one
+SELECT id, hostname, serverstatus, publicipaddress FROM servers
+WHERE id = ?
+`
+	// TODO - DB level handling of joins is a-OK?
+	listServers = `-- name: ListServers: many
+SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss WHERE s.serverstatus = ss.id
+`
+	getServerStatusById = `-- name: GetServerStatusById: one
+SELECT name FROM serverstatus
+WHERE id = ?
+`
 )
 
 type GetFruitParams struct {
@@ -200,12 +217,47 @@ func (q *Queries) ListRacksFromDB(ctx context.Context) ([]*entity.Rack, error) {
 	var fs []*entity.Rack
 	for rows.Next() {
 		var f entity.Rack
-		var nb *bool
-		if err := rows.Scan(&f.Id, &f.Name, &f.Ipaddr, &nb); err != nil {
+		if err := rows.Scan(&f.Id, &f.Name, &f.Ipaddr, &f.Live); err != nil {
 			return nil, err
 		}
-		if nb == nil {
-			f.Live = false
+		fs = append(fs, &f)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return fs, err
+}
+
+func (q *Queries) GetServerByNameFromDB(ctx context.Context, name string) (*entity.Server, int, error) {
+	row := q.db.QueryRowContext(ctx, getServerByName, name)
+	var f entity.Server
+	var status int
+	err := row.Scan(&f.Id, &f.HostName, &status, &f.PublicIpAddress)
+	log.Printf("Error from query is %v\n", err)
+	return &f, status, err
+}
+
+func (q *Queries) GetServerByIdFromDB(ctx context.Context, id int) (*entity.Server, error) {
+	row := q.db.QueryRowContext(ctx, getServerByName, id)
+	var f entity.Server
+	err := row.Scan(&f.Id, &f.HostName, &f.Status, &f.PublicIpAddress)
+	return &f, err
+}
+
+func (q *Queries) ListServersFromDB(ctx context.Context) ([]*entity.Server, error) {
+	rows, err := q.db.QueryContext(ctx, listServers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var fs []*entity.Server
+	for rows.Next() {
+		var f entity.Server
+		if err := rows.Scan(&f.Id, &f.HostName, &f.Status, &f.PublicIpAddress); err != nil {
+			return nil, err
 		}
 		fs = append(fs, &f)
 	}
@@ -234,4 +286,12 @@ func (q *Queries) ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]Lis
 		retList = append(retList, tmp)
 	}
 	return retList, nil
+}
+
+func (q *Queries) GetServerStatusById(ctx context.Context, id int) (*string, error) {
+	row := q.db.QueryRowContext(ctx, getServerStatusById, id)
+	var status string
+	err := row.Scan(&status)
+	log.Printf("Status is %v, err is %v for Query: %s", status, err, getServerStatusById)
+	return &status, err
 }
