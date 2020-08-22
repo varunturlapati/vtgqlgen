@@ -31,9 +31,18 @@ type Repository interface {
 	GetRack(ctx context.Context, id int) (*entity.Rack, error)
 	ListRacks(ctx context.Context) ([]*entity.Rack, error)
 
+	// server queries
+	GetServerByName(ctx context.Context, name string) (*entity.Server, error)
+	GetServerById(ctx context.Context, id int) (*entity.Server, error)
+	ListServers(ctx context.Context) ([]*entity.Server, error)
+
 	ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]r.ListRacksByFruitIDsRow, error)
 	ListFruitsByRackIDs(ctx context.Context, rackIDs []int) ([]d.ListFruitsByRackIDsRow, error)
 	ListRacksByIDs(ctx context.Context, IDs []int) ([]*entity.Rack, error)
+
+	// TODO - is there an impact on helpers like this one on which we may not want to directly expose queries? The answer may be similar to
+	// join cases like ListRacksByFruitIDs() above
+	GetServerStatusById(ctx context.Context, id int) (*string, error)
 }
 
 const (
@@ -92,7 +101,7 @@ func (rs *repoSvc) ListRacksByIDs(ctx context.Context, IDs []int) ([]*entity.Rac
 func (rs *repoSvc) GetRack(ctx context.Context, id int) (*entity.Rack, error) {
 	log.Println("I reached GetRack")
 	var rk entity.Rack
-	restRes, err := rs.GetRackFromNetbox(ctx, id)
+	restRes, err := rs.GetRackFromNetbox(ctx, id) // GetRack - Rest netbox.go
 	if err != nil {
 		log.Println("Rest Query for Rack threw and error")
 	}
@@ -116,7 +125,7 @@ func (rs *repoSvc) GetRack(ctx context.Context, id int) (*entity.Rack, error) {
 func (rs *repoSvc) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
 	log.Println("I reached ListRacks")
 	rackList := make([]*entity.Rack, 0)
-	restRes, err := rs.RestRequests.ListRacksFromNetbox(ctx)
+	restRes, err := rs.ListRacksFromNetbox(ctx)
 	if err != nil {
 		log.Println("Couldn't get Netbox results for Racks")
 	}
@@ -126,7 +135,7 @@ func (rs *repoSvc) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
 	for _, i := range restRes {
 		Id2RackMap[int(i.Id)] = i
 	}
-	res, err := rs.Queries.ListRacksFromDB(ctx)
+	res, err := rs.ListRacksFromDB(ctx)
 	if err != nil {
 		log.Println("Couldn't get DB results for Racks")
 		return rackList, err
@@ -138,10 +147,14 @@ func (rs *repoSvc) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
 			log.Println("Found an entry not in Netbox")
 			rackList = append(rackList, rack)
 		} else {
-			log.Println("This entry is in Netbox")
+			log.Printf("The entry with Id %d is in Netbox\n", rack.Id)
 			rk.Id = rack.Id
-			rk.Name = rack.Name
-			rk.Ipaddr = rack.Ipaddr
+			if tmp.Name == "" {
+				rk.Name = rack.Name // tmp.Name
+			} else {
+				rk.Name = tmp.Name
+			}
+			rk.Ipaddr = rack.Ipaddr // tmp.Ipaddr
 			rk.Live = rack.Live
 			rk.CustomFields = tmp.CustomFields
 			rk.Created = tmp.Created
@@ -150,4 +163,97 @@ func (rs *repoSvc) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
 	}
 	log.Printf("Returning rackList with final length = %d\n", len(rackList))
 	return rackList, nil
+}
+
+func (rs *repoSvc) GetServerByName(ctx context.Context, name string) (*entity.Server, error) {
+	log.Println("I reached GetServer")
+	var rk entity.Server
+	// TODO - discuss this. This is a reasonable way to workaround when fields are directly flattened into a struct but also the type is
+	// different. For ex, the table has int that we directly get. Then we make another query for fetching the status string by id.
+	res, statusInt, err := rs.GetServerByNameFromDB(ctx, name)
+	if err != nil {
+		log.Println("DB Query for Server threw an error")
+	}
+	if res != nil {
+		rk.Id = res.Id
+		rk.HostName = res.HostName
+		rk.PublicIpAddress = res.PublicIpAddress
+	}
+	log.Printf("DB result for Server %s is %+v\n", name, rk)
+
+	restRes, err := rs.GetServerFromNetbox(ctx, rk.Id) // GetServer - Rest netbox.go
+	if err != nil {
+		log.Println("Rest Query for Server threw and error")
+	}
+	if restRes != nil {
+		rk.RackName = restRes.RackName
+		rk.NetboxName = restRes.NetboxName
+	}
+	 s, err := rs.GetServerStatusById(ctx, statusInt)
+	 if err != nil {
+	 	log.Printf("Error from getting server status by id: %v\n", err)
+	 }
+	 rk.Status = *s
+	return &rk, nil
+}
+
+func (rs *repoSvc) GetServerById(ctx context.Context, id int) (*entity.Server, error) {
+	log.Println("I reached GetServer")
+	var rk entity.Server
+	res, err := rs.GetServerByIdFromDB(ctx, id)
+	if err != nil {
+		log.Println("DB Query for Server threw an error")
+	}
+	if res != nil && res.Id != 0 {
+		id = res.Id
+	}
+	restRes, err := rs.GetServerFromNetbox(ctx, id) // GetServer - Rest netbox.go
+	if err != nil {
+		log.Println("Rest Query for Server threw and error")
+	}
+
+	if restRes.RackName != "" {
+		rk.RackName = restRes.RackName
+	}
+	return &rk, nil
+}
+
+func (rs *repoSvc) ListServers(ctx context.Context) ([]*entity.Server, error) {
+	log.Println("I reached ListServers")
+	serverList := make([]*entity.Server, 0)
+	restRes, err := rs.ListServersFromNetbox(ctx)
+	if err != nil {
+		log.Println("Couldn't get Netbox results for Servers")
+	}
+	serverList = append(serverList, restRes...)
+	log.Printf("Num of server entries after Netbox query: %d and Result length = %d\n", len(serverList), len(restRes))
+	Id2ServerMap := make(map[int]*entity.Server)
+	for _, i := range restRes {
+		Id2ServerMap[int(i.Id)] = i
+	}
+	res, err := rs.ListServersFromDB(ctx)
+	if err != nil {
+		log.Println("Couldn't get DB results for Servers")
+		return serverList, err
+	}
+	for _, server := range res {
+		var rk entity.Server
+		tmp, ok := Id2ServerMap[int(server.Id)]
+		if !ok {
+			// log.Println("Found an entry not in Netbox")
+			serverList = append(serverList, server)
+		} else {
+			log.Printf("The entry with Id %d is in Netbox\n", server.Id)
+			rk.Id = server.Id
+			rk.RackName = tmp.RackName
+			rk.HostName = server.HostName
+			rk.NetboxName = tmp.NetboxName
+			rk.PublicIpAddress = server.PublicIpAddress
+			//rk.ServerStatus = rs.GetServerStatusById()
+			// TODO Server Status resolution and dataloaders
+			serverList = append(serverList, &rk)
+		}
+	}
+	log.Printf("Returning serverList with final length = %d\n", len(serverList))
+	return serverList, nil
 }

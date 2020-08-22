@@ -78,10 +78,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Fruit  func(childComplexity int, id int) int
-		Fruits func(childComplexity int) int
-		Rack   func(childComplexity int, id int) int
-		Racks  func(childComplexity int) int
+		Fruit        func(childComplexity int, id int) int
+		Fruits       func(childComplexity int) int
+		Rack         func(childComplexity int, id int) int
+		Racks        func(childComplexity int) int
+		ServerByID   func(childComplexity int, id int) int
+		ServerByName func(childComplexity int, name string) int
+		Servers      func(childComplexity int) int
 	}
 
 	Rack struct {
@@ -97,6 +100,14 @@ type ComplexityRoot struct {
 	Role struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
+	}
+
+	Server struct {
+		HostName        func(childComplexity int) int
+		NetboxName      func(childComplexity int) int
+		PublicIpAddress func(childComplexity int) int
+		RackName        func(childComplexity int) int
+		Status          func(childComplexity int) int
 	}
 
 	Status struct {
@@ -120,6 +131,9 @@ type QueryResolver interface {
 	Fruit(ctx context.Context, id int) (*entity.Fruit, error)
 	Racks(ctx context.Context) ([]entity.Rack, error)
 	Rack(ctx context.Context, id int) (*entity.Rack, error)
+	Servers(ctx context.Context) ([]entity.Server, error)
+	ServerByName(ctx context.Context, name string) (*entity.Server, error)
+	ServerByID(ctx context.Context, id int) (*entity.Server, error)
 }
 type RackResolver interface {
 	Fruit(ctx context.Context, obj *entity.Rack) (*entity.Fruit, error)
@@ -312,6 +326,37 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Racks(childComplexity), true
 
+	case "Query.ServerById":
+		if e.complexity.Query.ServerByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ServerById_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerByID(childComplexity, args["Id"].(int)), true
+
+	case "Query.ServerByName":
+		if e.complexity.Query.ServerByName == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ServerByName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerByName(childComplexity, args["Name"].(string)), true
+
+	case "Query.Servers":
+		if e.complexity.Query.Servers == nil {
+			break
+		}
+
+		return e.complexity.Query.Servers(childComplexity), true
+
 	case "Rack.Created":
 		if e.complexity.Rack.Created == nil {
 			break
@@ -374,6 +419,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Role.Name(childComplexity), true
+
+	case "Server.HostName":
+		if e.complexity.Server.HostName == nil {
+			break
+		}
+
+		return e.complexity.Server.HostName(childComplexity), true
+
+	case "Server.NetboxName":
+		if e.complexity.Server.NetboxName == nil {
+			break
+		}
+
+		return e.complexity.Server.NetboxName(childComplexity), true
+
+	case "Server.PublicIpAddress":
+		if e.complexity.Server.PublicIpAddress == nil {
+			break
+		}
+
+		return e.complexity.Server.PublicIpAddress(childComplexity), true
+
+	case "Server.RackName":
+		if e.complexity.Server.RackName == nil {
+			break
+		}
+
+		return e.complexity.Server.RackName(childComplexity), true
+
+	case "Server.Status":
+		if e.complexity.Server.Status == nil {
+			break
+		}
+
+		return e.complexity.Server.Status(childComplexity), true
 
 	case "Status.Label":
 		if e.complexity.Status.Label == nil {
@@ -460,6 +540,9 @@ type Query {
     Fruit(Id: Int!): Fruit
     Racks: [Rack!]!
     Rack(Id: Int!): Rack
+    Servers: [Server!]!
+    ServerByName(Name: String!): Server
+    ServerById(Id: Int!): Server
 }
 
 # Define what the queries are capable of:
@@ -493,6 +576,13 @@ type CustomFields {
     RblxRackId: Int
     DesignRevision: String
     CageId: String
+}
+type Server {
+    HostName: String!
+    NetboxName: String
+    RackName: String
+    Status: String
+    PublicIpAddress: String
 }
 type Status {
     Label: String
@@ -594,6 +684,34 @@ func (ec *executionContext) field_Query_Rack_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ServerById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["Id"]; ok {
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ServerByName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["Name"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Name"] = arg0
 	return args, nil
 }
 
@@ -1363,6 +1481,116 @@ func (ec *executionContext) _Query_Rack(ctx context.Context, field graphql.Colle
 	return ec.marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐRack(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_Servers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Servers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]entity.Server)
+	fc.Result = res
+	return ec.marshalNServer2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ServerByName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ServerByName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerByName(rctx, args["Name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Server)
+	fc.Result = res
+	return ec.marshalOServer2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ServerById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ServerById_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerByID(rctx, args["Id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Server)
+	fc.Result = res
+	return ec.marshalOServer2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1718,6 +1946,164 @@ func (ec *executionContext) _Role_Name(ctx context.Context, field graphql.Collec
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Server_HostName(ctx context.Context, field graphql.CollectedField, obj *entity.Server) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Server",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HostName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Server_NetboxName(ctx context.Context, field graphql.CollectedField, obj *entity.Server) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Server",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NetboxName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Server_RackName(ctx context.Context, field graphql.CollectedField, obj *entity.Server) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Server",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RackName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Server_Status(ctx context.Context, field graphql.CollectedField, obj *entity.Server) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Server",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Server_PublicIpAddress(ctx context.Context, field graphql.CollectedField, obj *entity.Server) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Server",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PublicIpAddress, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Status_Label(ctx context.Context, field graphql.CollectedField, obj *Status) (ret graphql.Marshaler) {
@@ -3133,6 +3519,42 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_Rack(ctx, field)
 				return res
 			})
+		case "Servers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_Servers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "ServerByName":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ServerByName(ctx, field)
+				return res
+			})
+		case "ServerById":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ServerById(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -3217,6 +3639,41 @@ func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "Name":
 			out.Values[i] = ec._Role_Name(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serverImplementors = []string{"Server"}
+
+func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, obj *entity.Server) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serverImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Server")
+		case "HostName":
+			out.Values[i] = ec._Server_HostName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "NetboxName":
+			out.Values[i] = ec._Server_NetboxName(ctx, field, obj)
+		case "RackName":
+			out.Values[i] = ec._Server_RackName(ctx, field, obj)
+		case "Status":
+			out.Values[i] = ec._Server_Status(ctx, field, obj)
+		case "PublicIpAddress":
+			out.Values[i] = ec._Server_PublicIpAddress(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3637,6 +4094,47 @@ func (ec *executionContext) marshalNRack2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgq
 	return ret
 }
 
+func (ec *executionContext) marshalNServer2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx context.Context, sel ast.SelectionSet, v entity.Server) graphql.Marshaler {
+	return ec._Server(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServer2ᚕgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerᚄ(ctx context.Context, sel ast.SelectionSet, v []entity.Server) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServer2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -3977,6 +4475,17 @@ func (ec *executionContext) marshalORack2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgq
 		return graphql.Null
 	}
 	return ec._Rack(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOServer2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx context.Context, sel ast.SelectionSet, v entity.Server) graphql.Marshaler {
+	return ec._Server(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOServer2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx context.Context, sel ast.SelectionSet, v *entity.Server) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Server(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
