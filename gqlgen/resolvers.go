@@ -4,7 +4,6 @@ package gqlgen
 
 import (
 	"context"
-	"fmt"
 	"github.com/varunturlapati/vtgqlgen/dataloaders"
 	"github.com/varunturlapati/vtgqlgen/datasource"
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
@@ -23,19 +22,9 @@ func (r *fruitResolver) Level(ctx context.Context, obj *entity.Fruit) (*entity.L
 	return r.Repository.GetLevel(ctx, obj.Name)
 }
 
-func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit, id *int) (*entity.Rack, error) {
+func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*entity.Rack, error) {
 	//return r.Repository.GetRack(ctx, obj.Id)
-	var rId int
-	if obj == nil && id == nil {
-		return nil, fmt.Errorf("can't have both obj and id blank for fruit.Rack()")
-	}
-	if id != nil {
-		rId = *id
-	}
-	if obj != nil {
-		rId = obj.Id
-	}
-	return r.DataLoaders.Retrieve(ctx).RackByFruitId.Load(rId)
+	return r.DataLoaders.Retrieve(ctx).RackByFruitId.Load(obj.Id)
 }
 
 func (r *queryResolver) Fruits(ctx context.Context) ([]entity.Fruit, error) {
