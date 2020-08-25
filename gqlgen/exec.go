@@ -63,7 +63,7 @@ type ComplexityRoot struct {
 		Level    func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Quantity func(childComplexity int) int
-		Rack     func(childComplexity int, id *int) int
+		Rack     func(childComplexity int) int
 	}
 
 	Level struct {
@@ -118,7 +118,7 @@ type ComplexityRoot struct {
 type FruitResolver interface {
 	Detail(ctx context.Context, obj *entity.Fruit) (*entity.Detail, error)
 	Level(ctx context.Context, obj *entity.Fruit) (*entity.Level, error)
-	Rack(ctx context.Context, obj *entity.Fruit, id *int) (*entity.Rack, error)
+	Rack(ctx context.Context, obj *entity.Fruit) (*entity.Rack, error)
 }
 type MutationResolver interface {
 	CreateFruit(ctx context.Context, data FruitInput) (*entity.Fruit, error)
@@ -234,12 +234,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Fruit_Rack_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Fruit.Rack(childComplexity, args["Id"].(*int)), true
+		return e.complexity.Fruit.Rack(childComplexity), true
 
 	case "Level.Color":
 		if e.complexity.Level.Color == nil {
@@ -542,7 +537,7 @@ type Fruit {
     Quantity: Int!
     Detail: Detail
     Level: Level
-    Rack(Id: Int): Rack
+    Rack: Rack
 }
 type Detail {
     Name: String!
@@ -598,20 +593,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Fruit_Rack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["Id"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["Id"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_CreateFruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1131,16 +1112,9 @@ func (ec *executionContext) _Fruit_Rack(ctx context.Context, field graphql.Colle
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Fruit_Rack_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Fruit().Rack(rctx, obj, args["Id"].(*int))
+		return ec.resolvers.Fruit().Rack(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
