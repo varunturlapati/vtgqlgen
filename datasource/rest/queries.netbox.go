@@ -122,8 +122,8 @@ func (r *RestRequests) ListServersFromNetbox(ctx context.Context) ([]*entity.Ser
 			tmpRackName = tmpRackMap["name"].(string)
 		}
 		retServer := &entity.Server{
-			Id: int(tmpId),
-			RackName: tmpRackName,
+			Id:         int(tmpId),
+			RackName:   tmpRackName,
 			NetboxName: tmpDispName,
 		}
 		servers = append(servers, retServer)

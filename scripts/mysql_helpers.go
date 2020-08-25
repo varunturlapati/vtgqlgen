@@ -18,12 +18,12 @@ const (
 )
 
 var (
-	startInd    = 1
-	endInd      = 200
-	namePrefix  = "my_rack_go2_"
-	fruitNames  = []string{"papaya", "apple", "banana", "watermelon", "raspberry", "blueberry", "strawberry", "lemon", "avocado", "grape"}
-	ipDomain    = "10.20.0."
-	truthValues = []bool{true, false}
+	startInd         = 1
+	endInd           = 200
+	namePrefix       = "my_rack_go2_"
+	fruitNames       = []string{"papaya", "apple", "banana", "watermelon", "raspberry", "blueberry", "strawberry", "lemon", "avocado", "grape"}
+	ipDomain         = "10.20.0."
+	truthValues      = []bool{true, false}
 	serverStatusList = []string{"Live", "Maintenance", "Retired", "Reserve", "ProvisioningOS", "HWClassified", "Prep", "Deallocation",
 		"Prototype", "Migration", "Defective", "Hibernation"}
 	hostnamePrefix = "my_server_"
@@ -76,7 +76,7 @@ func InsertServerStatusData() {
 	rand.Seed(time.Now().UnixNano())
 	for i, ss := range serverStatusList {
 		var f entity.ServerStatus
-		f.Id =i+1	// 0 indexing will be an issue in DBs
+		f.Id = i + 1 // 0 indexing will be an issue in DBs
 		f.Name = ss
 		db.Table("ServerStatus").Create(&f)
 	}
@@ -89,12 +89,12 @@ func InsertServerData() {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	for i:= startInd; i <= endInd; i++ {
+	for i := startInd; i <= endInd; i++ {
 		var f entity.Server
-		f.Id =i+1	// 0 indexing will be an issue in DBs
+		f.Id = i + 1 // 0 indexing will be an issue in DBs
 		f.HostName = fmt.Sprintf("%s%d", hostnamePrefix, i+1)
 		f.PublicIpAddress = fmt.Sprintf("%s%d", ipDomain, i)
-		f.ServerStatus = rand.Intn(len(serverStatusList)+1)
+		f.ServerStatus = rand.Intn(len(serverStatusList) + 1)
 		db.Create(&f)
 	}
 }

@@ -170,7 +170,7 @@ func (rs *repoSvc) GetServerByName(ctx context.Context, name string) (*entity.Se
 	var rk entity.Server
 	// TODO - discuss this. This is a reasonable way to workaround when fields are directly flattened into a struct but also the type is
 	// different. For ex, the table has int that we directly get. Then we make another query for fetching the status string by id.
-	res, statusInt, err := rs.GetServerByNameFromDB(ctx, name)
+	res, err := rs.GetServerByNameFromDB(ctx, name)
 	if err != nil {
 		log.Println("DB Query for Server threw an error")
 	}
@@ -178,6 +178,7 @@ func (rs *repoSvc) GetServerByName(ctx context.Context, name string) (*entity.Se
 		rk.Id = res.Id
 		rk.HostName = res.HostName
 		rk.PublicIpAddress = res.PublicIpAddress
+		rk.Status = res.Status
 	}
 	log.Printf("DB result for Server %s is %+v\n", name, rk)
 
@@ -189,11 +190,6 @@ func (rs *repoSvc) GetServerByName(ctx context.Context, name string) (*entity.Se
 		rk.RackName = restRes.RackName
 		rk.NetboxName = restRes.NetboxName
 	}
-	 s, err := rs.GetServerStatusById(ctx, statusInt)
-	 if err != nil {
-	 	log.Printf("Error from getting server status by id: %v\n", err)
-	 }
-	 rk.Status = *s
 	return &rk, nil
 }
 

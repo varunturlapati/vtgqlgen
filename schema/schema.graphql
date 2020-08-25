@@ -6,8 +6,7 @@ type Query {
     Racks: [Rack!]!
     Rack(Id: Int!): Rack
     Servers: [Server!]!
-    ServerByName(Name: String!): Server
-    ServerById(Id: Int!): Server
+    Server(Name: String, Id: Int): Server
 }
 
 # Define what the queries are capable of:
