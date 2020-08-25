@@ -231,13 +231,12 @@ func (q *Queries) ListRacksFromDB(ctx context.Context) ([]*entity.Rack, error) {
 	return fs, err
 }
 
-func (q *Queries) GetServerByNameFromDB(ctx context.Context, name string) (*entity.Server, int, error) {
+func (q *Queries) GetServerByNameFromDB(ctx context.Context, name string) (*entity.Server, error) {
 	row := q.db.QueryRowContext(ctx, getServerByName, name)
 	var f entity.Server
-	var status int
-	err := row.Scan(&f.Id, &f.HostName, &status, &f.PublicIpAddress)
+	err := row.Scan(&f.Id, &f.HostName, &f.Status, &f.PublicIpAddress)
 	log.Printf("Error from query is %v\n", err)
-	return &f, status, err
+	return &f, err
 }
 
 func (q *Queries) GetServerByIdFromDB(ctx context.Context, id int) (*entity.Server, error) {

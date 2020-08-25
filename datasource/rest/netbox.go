@@ -1,6 +1,6 @@
 package rest
 
 type AllResults struct {
-	Count int
+	Count   int
 	Results []interface{}
 }
