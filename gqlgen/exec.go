@@ -59,7 +59,7 @@ type ComplexityRoot struct {
 
 	Fruit struct {
 		Detail   func(childComplexity int) int
-		Id       func(childComplexity int) int
+		Id       func(childComplexity int, ids *entity.IntFilter) int
 		Level    func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Quantity func(childComplexity int) int
@@ -78,12 +78,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Fruit   func(childComplexity int, id int) int
-		Fruits  func(childComplexity int) int
-		Rack    func(childComplexity int, id int) int
-		Racks   func(childComplexity int) int
-		Server  func(childComplexity int, name *string, id *int) int
-		Servers func(childComplexity int) int
+		Fruit         func(childComplexity int, id int) int
+		Fruits        func(childComplexity int, ids *entity.IntFilter) int
+		Rack          func(childComplexity int, id int) int
+		Racks         func(childComplexity int) int
+		Server        func(childComplexity int, name *string, id *int) int
+		ServerByAttrs func(childComplexity int, attrs *entity.ServerAttrs) int
+		Servers       func(childComplexity int) int
 	}
 
 	Rack struct {
@@ -126,12 +127,13 @@ type MutationResolver interface {
 	DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error)
 }
 type QueryResolver interface {
-	Fruits(ctx context.Context) ([]entity.Fruit, error)
+	Fruits(ctx context.Context, ids *entity.IntFilter) ([]entity.Fruit, error)
 	Fruit(ctx context.Context, id int) (*entity.Fruit, error)
 	Racks(ctx context.Context) ([]entity.Rack, error)
 	Rack(ctx context.Context, id int) (*entity.Rack, error)
 	Servers(ctx context.Context) ([]entity.Server, error)
 	Server(ctx context.Context, name *string, id *int) (*entity.Server, error)
+	ServerByAttrs(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error)
 }
 type RackResolver interface {
 	Fruit(ctx context.Context, obj *entity.Rack) (*entity.Fruit, error)
@@ -206,7 +208,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Fruit.Id(childComplexity), true
+		args, err := ec.field_Fruit_Id_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Fruit.Id(childComplexity, args["Ids"].(*entity.IntFilter)), true
 
 	case "Fruit.Level":
 		if e.complexity.Fruit.Level == nil {
@@ -303,7 +310,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Fruits(childComplexity), true
+		args, err := ec.field_Query_Fruits_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Fruits(childComplexity, args["Ids"].(*entity.IntFilter)), true
 
 	case "Query.Rack":
 		if e.complexity.Query.Rack == nil {
@@ -335,6 +347,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Server(childComplexity, args["Name"].(*string), args["Id"].(*int)), true
+
+	case "Query.ServerByAttrs":
+		if e.complexity.Query.ServerByAttrs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ServerByAttrs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ServerByAttrs(childComplexity, args["Attrs"].(*entity.ServerAttrs)), true
 
 	case "Query.Servers":
 		if e.complexity.Query.Servers == nil {
@@ -522,17 +546,18 @@ var sources = []*ast.Source{
 	&ast.Source{Name: "../schema/schema.graphql", Input: `# Define what the schema is capable of:
 
 type Query {
-    Fruits: [Fruit!]!
+    Fruits(Ids: IntFilter): [Fruit!]!
     Fruit(Id: Int!): Fruit
     Racks: [Rack!]!
     Rack(Id: Int!): Rack
     Servers: [Server!]!
     Server(Name: String, Id: Int): Server
+    ServerByAttrs(Attrs: ServerAttrs): Server
 }
 
 # Define what the queries are capable of:
 type Fruit {
-    Id: Int!
+    Id(Ids: IntFilter): Int!
     Name: String!
     Quantity: Int!
     Detail: Detail
@@ -586,6 +611,19 @@ type Mutation {
 input FruitInput {
     Name: String!
     Quantity: Int!
+}
+
+input ServerAttrs {
+    HostName: String
+    Status: String
+}
+
+input IntFilter {
+    lt: Int
+    gt: Int
+    le: Int
+    ge: Int
+    ne: Int
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -593,6 +631,20 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Fruit_Id_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entity.IntFilter
+	if tmp, ok := rawArgs["Ids"]; ok {
+		arg0, err = ec.unmarshalOIntFilter2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐIntFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Ids"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_CreateFruit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -658,6 +710,20 @@ func (ec *executionContext) field_Query_Fruit_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_Fruits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entity.IntFilter
+	if tmp, ok := rawArgs["Ids"]; ok {
+		arg0, err = ec.unmarshalOIntFilter2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐIntFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Ids"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_Rack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -669,6 +735,20 @@ func (ec *executionContext) field_Query_Rack_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["Id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ServerByAttrs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entity.ServerAttrs
+	if tmp, ok := rawArgs["Attrs"]; ok {
+		arg0, err = ec.unmarshalOServerAttrs2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerAttrs(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Attrs"] = arg0
 	return args, nil
 }
 
@@ -948,6 +1028,13 @@ func (ec *executionContext) _Fruit_Id(ctx context.Context, field graphql.Collect
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Fruit_Id_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Id, nil
@@ -1331,9 +1418,16 @@ func (ec *executionContext) _Query_Fruits(ctx context.Context, field graphql.Col
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_Fruits_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Fruits(rctx)
+		return ec.resolvers.Query().Fruits(rctx, args["Ids"].(*entity.IntFilter))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1519,6 +1613,44 @@ func (ec *executionContext) _Query_Server(ctx context.Context, field graphql.Col
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Server(rctx, args["Name"].(*string), args["Id"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*entity.Server)
+	fc.Result = res
+	return ec.marshalOServer2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ServerByAttrs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ServerByAttrs_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ServerByAttrs(rctx, args["Attrs"].(*entity.ServerAttrs))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3188,6 +3320,72 @@ func (ec *executionContext) unmarshalInputFruitInput(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputIntFilter(ctx context.Context, obj interface{}) (entity.IntFilter, error) {
+	var it entity.IntFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "lt":
+			var err error
+			it.Lt, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gt":
+			var err error
+			it.Gt, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "le":
+			var err error
+			it.Le, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ge":
+			var err error
+			it.Ge, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ne":
+			var err error
+			it.Ne, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServerAttrs(ctx context.Context, obj interface{}) (entity.ServerAttrs, error) {
+	var it entity.ServerAttrs
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "HostName":
+			var err error
+			it.HostName, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Status":
+			var err error
+			it.Status, err = ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3483,6 +3681,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_Server(ctx, field)
+				return res
+			})
+		case "ServerByAttrs":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ServerByAttrs(ctx, field)
 				return res
 			})
 		case "__type":
@@ -4385,6 +4594,18 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
+func (ec *executionContext) unmarshalOIntFilter2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐIntFilter(ctx context.Context, v interface{}) (entity.IntFilter, error) {
+	return ec.unmarshalInputIntFilter(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOIntFilter2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐIntFilter(ctx context.Context, v interface{}) (*entity.IntFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOIntFilter2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐIntFilter(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) marshalOLevel2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐLevel(ctx context.Context, sel ast.SelectionSet, v entity.Level) graphql.Marshaler {
 	return ec._Level(ctx, sel, &v)
 }
@@ -4416,6 +4637,18 @@ func (ec *executionContext) marshalOServer2ᚖgithubᚗcomᚋvarunturlapatiᚋvt
 		return graphql.Null
 	}
 	return ec._Server(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOServerAttrs2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerAttrs(ctx context.Context, v interface{}) (entity.ServerAttrs, error) {
+	return ec.unmarshalInputServerAttrs(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOServerAttrs2ᚖgithubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerAttrs(ctx context.Context, v interface{}) (*entity.ServerAttrs, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOServerAttrs2githubᚗcomᚋvarunturlapatiᚋvtgqlgenᚋpkgᚋentityᚐServerAttrs(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
