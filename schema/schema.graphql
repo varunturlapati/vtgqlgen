@@ -7,6 +7,7 @@ type Query {
     Rack(Id: Int!): Rack
     Servers: [Server!]!
     Server(Name: String, Id: Int): Server
+    ServerByAttrs(Attrs: ServerAttrs): Server
 }
 
 # Define what the queries are capable of:
@@ -65,4 +66,9 @@ type Mutation {
 input FruitInput {
     Name: String!
     Quantity: Int!
+}
+
+input ServerAttrs {
+    HostName: String
+    Status: String
 }

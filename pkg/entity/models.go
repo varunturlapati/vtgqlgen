@@ -53,3 +53,5 @@ type Server struct {
 	//ServerStatus    int    `gorm:"column:ServerStatus;type:int;foreignkey;null"`
 	PublicIpAddress string `gorm:"column:PublicIpAddress;type:varchar(50);not null"`
 }
+
+type ServerAttrs Server

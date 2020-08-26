@@ -1,8 +1,11 @@
 package db
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
@@ -56,6 +59,9 @@ SELECT id, name, ipaddr, live FROM racks
 	getServerByName = `-- name: GetServerByName: one
 SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss
 WHERE s.serverstatus = ss.id AND s.hostname = ?
+`
+	getServerByAttrsBaseQuery = `-- name: GetServerByAttrs: one
+SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss
 `
 	getServerById = `-- name: GetServerById: one
 SELECT id, hostname, serverstatus, publicipaddress FROM servers
@@ -244,6 +250,35 @@ func (q *Queries) GetServerByIdFromDB(ctx context.Context, id int) (*entity.Serv
 	var f entity.Server
 	err := row.Scan(&f.Id, &f.HostName, &f.Status, &f.PublicIpAddress)
 	return &f, err
+}
+
+func (q *Queries) GetServerByAttrsFromDB(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error) {
+	var clauses []string
+	var args []interface{}
+	var query bytes.Buffer
+	query.WriteString(getServerByAttrsBaseQuery)
+	if attrs.HostName != "" {
+		clauses = append(clauses, "s.Hostname = ?")
+		args = append(args, attrs.HostName)
+	}
+	if attrs.Status != "" {
+		clauses = append(clauses, "ss.Name = ?")
+		args = append(args, attrs.Status)
+	}
+	if len(clauses) >= 1 {
+		query.WriteString(fmt.Sprintf(" WHERE %s", strings.Join(clauses, " AND ")))
+	} else {
+		query.WriteString(" LIMIT 1")
+	}
+	/*
+	finQ := fmt.Sprintf("%s", query.String())
+	log.Printf("%s with args %v", finQ, args)
+	row := q.db.QueryRowContext(ctx, finQ, args...)
+	*/
+	row := q.db.QueryRowContext(ctx, query.String(), args...)
+	var s entity.Server
+	err := row.Scan(&s.Id, &s.HostName, &s.Status, &s.PublicIpAddress)
+	return &s, err
 }
 
 func (q *Queries) ListServersFromDB(ctx context.Context) ([]*entity.Server, error) {
