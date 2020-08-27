@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/varunturlapati/vtgqlgen/datasource/db"
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
@@ -85,7 +86,44 @@ func (r *RestRequests) GetServerFromNetbox(ctx context.Context, id int) (*entity
 	if err != nil {
 		return &Server, err
 	}
+	return &Server, nil
+}
 
+func (r *RestRequests) GetServerByAttrsFromNetbox(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error) {
+	var Server entity.Server
+	var res AllResults
+
+	tmp := strings.Split(attrs.HostName, " ")
+	qParam := strings.Join(tmp, "%20")
+	clause := fmt.Sprintf("?name=%s", qParam)
+	getSrvUrl := fmt.Sprintf("http://localhost:8000/api/dcim/devices/%v", clause)
+
+	resp, err := http.Get(getSrvUrl)
+	if err != nil {
+		log.Printf("Err from rest for URL: %s is\n Err: %v", getSrvUrl, err)
+		return &Server, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	// TODO - just taking the first one. Scope for doing something else
+	if res.Results != nil && len(res.Results) > 0 {
+		topRes := res.Results[0]
+		Server.NetboxName = topRes["display_name"].(string)
+		tmpRack := topRes["rack"]
+		if tmpRack != nil {
+			tmpRackMap := tmpRack.(map[string]interface{})
+			Server.RackName = tmpRackMap["name"].(string)
+		}
+		log.Printf("Json unmarshal error with one server: %v\n", err)
+	}
 	return &Server, nil
 }
 
@@ -112,7 +150,7 @@ func (r *RestRequests) ListServersFromNetbox(ctx context.Context) ([]*entity.Ser
 	}
 	for _, elem := range res.Results {
 		var tmpRackName, tmpDispName string
-		tmpServer := elem.(map[string]interface{})
+		tmpServer := elem//.(map[string]interface{})
 		// log.Printf("TmpServer looks like %+v\n", tmpServer)
 		tmpDispName = tmpServer["display_name"].(string)
 		tmpId := tmpServer["id"].(float64)

@@ -14,7 +14,7 @@ import (
 type Repository interface {
 	// fruit queries
 	GetFruit(ctx context.Context, id int) (*entity.Fruit, error)
-	ListFruits(ctx context.Context) ([]*entity.Fruit, error)
+	ListFruits(ctx context.Context, idFilter *entity.IntFilter) ([]*entity.Fruit, error)
 	CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error)
 	UpdateFruit(ctx context.Context, arg *entity.UpdateFruitParams) (*entity.Fruit, error)
 	DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error)
@@ -34,6 +34,7 @@ type Repository interface {
 	// server queries
 	GetServerByName(ctx context.Context, name string) (*entity.Server, error)
 	GetServerById(ctx context.Context, id int) (*entity.Server, error)
+	GetServerByAttrs(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error)
 	ListServers(ctx context.Context) ([]*entity.Server, error)
 
 	ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]r.ListRacksByFruitIDsRow, error)
@@ -208,7 +209,7 @@ func (rs *repoSvc) GetServerById(ctx context.Context, id int) (*entity.Server, e
 		log.Println("Rest Query for Server threw and error")
 	}
 
-	if restRes.RackName != "" {
+	if restRes != nil && restRes.RackName != "" {
 		rk.RackName = restRes.RackName
 	}
 	return &rk, nil
@@ -252,4 +253,27 @@ func (rs *repoSvc) ListServers(ctx context.Context) ([]*entity.Server, error) {
 	}
 	log.Printf("Returning serverList with final length = %d\n", len(serverList))
 	return serverList, nil
+}
+
+func (rs *repoSvc) GetServerByAttrs(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error) {
+	log.Println("I reached GetServerByAttrs")
+	// var rk entity.Server
+	res, err := rs.GetServerByAttrsFromDB(ctx, attrs)
+	if err != nil {
+		log.Printf("DB Query for Server threw an error: %v\n", err)
+	}
+
+	restRes, err := rs.GetServerByAttrsFromNetbox(ctx, (*entity.ServerAttrs)(res))
+	if err != nil {
+		log.Println("Rest Query for Server threw and error")
+	}
+	if restRes != nil {
+		if restRes.RackName != "" {
+			res.RackName = restRes.RackName
+		}
+		if restRes.NetboxName != "" {
+			res.NetboxName = restRes.NetboxName
+		}
+	}
+	return res, nil
 }

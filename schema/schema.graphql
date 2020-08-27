@@ -1,17 +1,18 @@
 # Define what the schema is capable of:
 
 type Query {
-    Fruits: [Fruit!]!
+    Fruits(Ids: IntFilter): [Fruit!]!
     Fruit(Id: Int!): Fruit
     Racks: [Rack!]!
     Rack(Id: Int!): Rack
     Servers: [Server!]!
     Server(Name: String, Id: Int): Server
+    ServerByAttrs(Attrs: ServerAttrs): Server
 }
 
 # Define what the queries are capable of:
 type Fruit {
-    Id: Int!
+    Id(Ids: IntFilter): Int!
     Name: String!
     Quantity: Int!
     Detail: Detail
@@ -65,4 +66,17 @@ type Mutation {
 input FruitInput {
     Name: String!
     Quantity: Int!
+}
+
+input ServerAttrs {
+    HostName: String
+    Status: String
+}
+
+input IntFilter {
+    lt: Int
+    gt: Int
+    le: Int
+    ge: Int
+    ne: Int
 }

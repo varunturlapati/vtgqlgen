@@ -1,8 +1,11 @@
 package db
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/varunturlapati/vtgqlgen/pkg/entity"
 )
@@ -14,7 +17,6 @@ WHERE id = ?
 `
 	listFruits = `-- name: ListFruits: many
 SELECT id, name, quantity FROM fruits
-ORDER BY id
 `
 	getDetail = `-- name: GetDetail: one
 SELECT id, name, color, taste FROM fruitinfo
@@ -57,6 +59,9 @@ SELECT id, name, ipaddr, live FROM racks
 SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss
 WHERE s.serverstatus = ss.id AND s.hostname = ?
 `
+	getServerByAttrsBaseQuery = `-- name: GetServerByAttrs: one
+SELECT s.id, s.hostname, ss.name, s.publicipaddress FROM servers AS s, ServerStatus AS ss
+`
 	getServerById = `-- name: GetServerById: one
 SELECT id, hostname, serverstatus, publicipaddress FROM servers
 WHERE id = ?
@@ -95,8 +100,13 @@ func (q *Queries) GetFruit(ctx context.Context, id int) (*entity.Fruit, error) {
 	return &f, err
 }
 
-func (q *Queries) ListFruits(ctx context.Context) ([]*entity.Fruit, error) {
-	rows, err := q.db.QueryContext(ctx, listFruits)
+func (q *Queries) ListFruits(ctx context.Context, idFilter *entity.IntFilter) ([]*entity.Fruit, error) {
+	var query string
+	var args []interface{}
+	if idFilter != nil {
+		query, args = processClausesFromIdFilter(listFruits, idFilter)
+	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +126,39 @@ func (q *Queries) ListFruits(ctx context.Context) ([]*entity.Fruit, error) {
 		return nil, err
 	}
 	return fs, err
+}
+
+func processClausesFromIdFilter(query string, filter *entity.IntFilter) (string, []interface{}) {
+	var clauses []string
+	var args []interface{}
+	var qBytes bytes.Buffer
+	qBytes.WriteString(query)
+	if filter.Ne != 0 {
+		clauses = append(clauses, "id != ?")
+		args = append(args, filter.Ne)
+	}
+	if filter.Ge != 0 {
+		clauses = append(clauses, "id >= ?")
+		args = append(args, filter.Ge)
+	}
+	if filter.Le != 0 {
+		clauses = append(clauses, "id <= ?")
+		args = append(args, filter.Le)
+	}
+	if filter.Gt != 0 {
+		clauses = append(clauses, "id > ?")
+		args = append(args, filter.Gt)
+	}
+	if filter.Lt != 0 {
+		clauses = append(clauses, "id < ?")
+		args = append(args, filter.Lt)
+	}
+	if len(clauses) >= 1 {
+		qBytes.WriteString(fmt.Sprintf(" WHERE %s", strings.Join(clauses, " AND ")))
+	}
+	retStr := qBytes.String()
+	log.Printf("IdFilter procesing yields the following query: %s with args: %v", retStr, args)
+	return retStr, args
 }
 
 func (q *Queries) CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error) {
@@ -244,6 +287,35 @@ func (q *Queries) GetServerByIdFromDB(ctx context.Context, id int) (*entity.Serv
 	var f entity.Server
 	err := row.Scan(&f.Id, &f.HostName, &f.Status, &f.PublicIpAddress)
 	return &f, err
+}
+
+func (q *Queries) GetServerByAttrsFromDB(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error) {
+	var clauses []string
+	var args []interface{}
+	var query bytes.Buffer
+	query.WriteString(getServerByAttrsBaseQuery)
+	if attrs.HostName != "" {
+		clauses = append(clauses, "s.Hostname = ?")
+		args = append(args, attrs.HostName)
+	}
+	if attrs.Status != "" {
+		clauses = append(clauses, "ss.Name = ?")
+		args = append(args, attrs.Status)
+	}
+	if len(clauses) >= 1 {
+		query.WriteString(fmt.Sprintf(" WHERE %s", strings.Join(clauses, " AND ")))
+	} else {
+		query.WriteString(" LIMIT 1")
+	}
+	/*
+	finQ := fmt.Sprintf("%s", query.String())
+	log.Printf("%s with args %v", finQ, args)
+	row := q.db.QueryRowContext(ctx, finQ, args...)
+	*/
+	row := q.db.QueryRowContext(ctx, query.String(), args...)
+	var s entity.Server
+	err := row.Scan(&s.Id, &s.HostName, &s.Status, &s.PublicIpAddress)
+	return &s, err
 }
 
 func (q *Queries) ListServersFromDB(ctx context.Context) ([]*entity.Server, error) {

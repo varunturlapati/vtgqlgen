@@ -27,8 +27,8 @@ func (r *fruitResolver) Rack(ctx context.Context, obj *entity.Fruit) (*entity.Ra
 	return r.DataLoaders.Retrieve(ctx).RackByFruitId.Load(obj.Id)
 }
 
-func (r *queryResolver) Fruits(ctx context.Context) ([]entity.Fruit, error) {
-	fruitPtrs, err := r.Repository.ListFruits(ctx)
+func (r *queryResolver) Fruits(ctx context.Context, idFilter *entity.IntFilter) ([]entity.Fruit, error) {
+	fruitPtrs, err := r.Repository.ListFruits(ctx, idFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -70,16 +70,6 @@ func (r *queryResolver) Servers(ctx context.Context) ([]entity.Server, error) {
 	}
 	return servers, nil
 }
-
-/*
-func (r *queryResolver) ServerByName(ctx context.Context, name string) (*entity.Server, error) {
-	return r.Repository.GetServerByName(ctx, name)
-}
-
-func (r *queryResolver) ServerByID(ctx context.Context, id int) (*entity.Server, error) {
-	return r.Repository.GetServerById(ctx, id)
-}
-*/
 
 func (r *queryResolver) Server(ctx context.Context, name *string, id *int) (*entity.Server, error) {
 	if name == nil && id == nil {
@@ -157,4 +147,12 @@ type fruitResolver struct{ *Resolver }
 type rackResolver struct{ *Resolver }
 type serverResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+func (r *queryResolver) ServerByAttrs(ctx context.Context, attrs *entity.ServerAttrs) (*entity.Server, error) {
+	if attrs == nil {
+		return nil, nil
+	}
+	return r.Repository.GetServerByAttrs(ctx, attrs)
+}
+
 type mutationResolver struct{ *Resolver }
