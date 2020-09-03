@@ -12,4 +12,4 @@ github.com/varunturlapati/vtgql
 # Tools
 1. `gqlgen`
 1. `dataloaden`
-1. `sqlc` - currently doesn't support much more than Postgres. (This project doesn't use `sqlc`
+1. `sqlc` - currently doesn't support much more than Postgres. (This project doesn't use `sqlc`)

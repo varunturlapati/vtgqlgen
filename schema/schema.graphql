@@ -1,9 +1,9 @@
 # Define what the schema is capable of:
 
 type Query {
-    Fruits(Ids: IntFilter): [Fruit!]!
+    Fruits(FruitFilter: FruitFilter, RackFilter: RackFilter): [Fruit!]!
     Fruit(Id: Int!): Fruit
-    Racks: [Rack!]!
+    Racks(RackFilter: RackFilter): [Rack!]!
     Rack(Id: Int!): Rack
     Servers: [Server!]!
     Server(Name: String, Id: Int): Server
@@ -11,52 +11,7 @@ type Query {
 }
 
 # Define what the queries are capable of:
-type Fruit {
-    Id(Ids: IntFilter): Int!
-    Name: String!
-    Quantity: Int!
-    Detail: Detail
-    Level: Level
-    Rack: Rack
-}
-type Detail {
-    Name: String!
-    Color: String
-    Taste: String
-}
-type Level {
-    Color: String!
-    Level: String
-}
-type Rack {
-    Id: Int!
-    Name: String!
-    Created: String
-    CustomFields: CustomFields
-    IpAddr: String
-    Live: Boolean
-    Fruit: Fruit
-}
-type CustomFields {
-    RblxRackId: Int
-    DesignRevision: String
-    CageId: String
-}
-type Server {
-    HostName: String!
-    NetboxName: String
-    RackName: String
-    Status: String
-    PublicIpAddress: String
-}
-type Status {
-    Label: String
-    Value: Int
-}
-type Role {
-    Id: Int!
-    Name: String
-}
+
 type Mutation {
     CreateFruit(data: FruitInput!): Fruit!
     UpdateFruit(id: Int!, data: FruitInput!): Fruit!
@@ -71,12 +26,4 @@ input FruitInput {
 input ServerAttrs {
     HostName: String
     Status: String
-}
-
-input IntFilter {
-    lt: Int
-    gt: Int
-    le: Int
-    ge: Int
-    ne: Int
 }

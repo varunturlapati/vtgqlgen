@@ -100,12 +100,26 @@ func (q *Queries) GetFruit(ctx context.Context, id int) (*entity.Fruit, error) {
 	return &f, err
 }
 
-func (q *Queries) ListFruits(ctx context.Context, idFilter *entity.IntFilter) ([]*entity.Fruit, error) {
+func (q *Queries) ListFruits(ctx context.Context, fruitFilter *entity.FruitFilter, rackFilter *entity.RackFilter) ([]*entity.Fruit, error) {
 	var query string
+	var clauses []string
 	var args []interface{}
-	if idFilter != nil {
-		query, args = processClausesFromIdFilter(listFruits, idFilter)
+	if fruitFilter != nil {
+		if fruitFilter.Ids != nil {
+			processClausesFromIdFilter(fruitFilter.Ids, &clauses, &args)
+		}
+		if fruitFilter.Names != nil {
+			processClausesFromStringFilter(fruitFilter.Names, &clauses, &args)
+		}
 	}
+
+	if len(clauses) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", listFruits, strings.Join(clauses, " AND "))
+	} else {
+		query = listFruits
+	}
+
+	// log.Printf("The final query after id and name filters is: %s\n", query)
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -128,11 +142,38 @@ func (q *Queries) ListFruits(ctx context.Context, idFilter *entity.IntFilter) ([
 	return fs, err
 }
 
-func processClausesFromIdFilter(query string, filter *entity.IntFilter) (string, []interface{}) {
+func processClausesFromStringFilter(filter *entity.StringFilter, allClauses *[]string, allArgs *[]interface{}) {
 	var clauses []string
 	var args []interface{}
-	var qBytes bytes.Buffer
-	qBytes.WriteString(query)
+
+	if filter.StartsWith != "" {
+		clauses = append(clauses, "name like ?")
+		args = append(args, filter.StartsWith+"%")
+	}
+	if filter.EndsWith != "" {
+		clauses = append(clauses, "name like ?")
+		args = append(args, "%"+filter.EndsWith)
+	}
+	if filter.Contains != "" {
+		clauses = append(clauses, "name like ?")
+		args = append(args, "%"+filter.Contains+"%")
+	}
+	if filter.NotContain != "" {
+		clauses = append(clauses, "name not like ?")
+		args = append(args, "%"+filter.NotContain+"%")
+	}
+	if len(clauses) >= 1 {
+		// qBytes.WriteString(strings.Join(clauses, " AND "))
+		*allArgs = append(*allArgs, args...)
+		*allClauses = append(*allClauses, clauses...)
+	}
+}
+
+func processClausesFromIdFilter(filter *entity.IntFilter, allClauses *[]string, allArgs *[]interface{}) {
+	var clauses []string
+	var args []interface{}
+	// var qBytes bytes.Buffer
+
 	if filter.Ne != 0 {
 		clauses = append(clauses, "id != ?")
 		args = append(args, filter.Ne)
@@ -154,11 +195,13 @@ func processClausesFromIdFilter(query string, filter *entity.IntFilter) (string,
 		args = append(args, filter.Lt)
 	}
 	if len(clauses) >= 1 {
-		qBytes.WriteString(fmt.Sprintf(" WHERE %s", strings.Join(clauses, " AND ")))
+		// qBytes.WriteString(strings.Join(clauses, " AND "))
+		*allArgs = append(*allArgs, args...)
+		*allClauses = append(*allClauses, clauses...)
 	}
-	retStr := qBytes.String()
-	log.Printf("IdFilter procesing yields the following query: %s with args: %v", retStr, args)
-	return retStr, args
+	// retStr := qBytes.String()
+	// log.Printf("IdFilter procesing yields the following query: %s with args: %v", retStr, args)
+	// return retStr, args
 }
 
 func (q *Queries) CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error) {
@@ -308,9 +351,9 @@ func (q *Queries) GetServerByAttrsFromDB(ctx context.Context, attrs *entity.Serv
 		query.WriteString(" LIMIT 1")
 	}
 	/*
-	finQ := fmt.Sprintf("%s", query.String())
-	log.Printf("%s with args %v", finQ, args)
-	row := q.db.QueryRowContext(ctx, finQ, args...)
+		finQ := fmt.Sprintf("%s", query.String())
+		log.Printf("%s with args %v", finQ, args)
+		row := q.db.QueryRowContext(ctx, finQ, args...)
 	*/
 	row := q.db.QueryRowContext(ctx, query.String(), args...)
 	var s entity.Server

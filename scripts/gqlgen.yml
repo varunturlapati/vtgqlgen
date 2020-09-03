@@ -1,7 +1,7 @@
 # gqlgen.yml
 # Refer to https://gqlgen.com/config/ for detailed documentation.
 
-schema: ../schema/schema.graphql
+schema: ../schema/*.graphql
 exec:
   filename: ../gqlgen/exec.go
 model:
