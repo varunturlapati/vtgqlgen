@@ -14,7 +14,7 @@ import (
 type Repository interface {
 	// fruit queries
 	GetFruit(ctx context.Context, id int) (*entity.Fruit, error)
-	ListFruits(ctx context.Context, idFilter *entity.IntFilter) ([]*entity.Fruit, error)
+	ListFruits(ctx context.Context, fruitFilter *entity.FruitFilter, rackFilter *entity.RackFilter) ([]*entity.Fruit, error)
 	CreateFruit(ctx context.Context, arg *entity.CreateFruitParams) (*entity.Fruit, error)
 	UpdateFruit(ctx context.Context, arg *entity.UpdateFruitParams) (*entity.Fruit, error)
 	DeleteFruit(ctx context.Context, id int) (*entity.Fruit, error)
@@ -29,7 +29,7 @@ type Repository interface {
 
 	// rack queries
 	GetRack(ctx context.Context, id int) (*entity.Rack, error)
-	ListRacks(ctx context.Context) ([]*entity.Rack, error)
+	ListRacks(ctx context.Context, rFilter *entity.RackFilter) ([]*entity.Rack, error)
 
 	// server queries
 	GetServerByName(ctx context.Context, name string) (*entity.Server, error)
@@ -123,7 +123,7 @@ func (rs *repoSvc) GetRack(ctx context.Context, id int) (*entity.Rack, error) {
 	return &rk, nil
 }
 
-func (rs *repoSvc) ListRacks(ctx context.Context) ([]*entity.Rack, error) {
+func (rs *repoSvc) ListRacks(ctx context.Context, rFilter *entity.RackFilter) ([]*entity.Rack, error) {
 	log.Println("I reached ListRacks")
 	rackList := make([]*entity.Rack, 0)
 	restRes, err := rs.ListRacksFromNetbox(ctx)

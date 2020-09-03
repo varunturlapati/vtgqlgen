@@ -1,0 +1,24 @@
+input IntFilter {
+    lt: Int
+    gt: Int
+    le: Int
+    ge: Int
+    ne: Int
+}
+
+input StringFilter {
+    startswith: String
+    endswith: String
+    contains: String
+    notcontain: String
+}
+
+input FruitFilter {
+    Ids: IntFilter
+    Names: StringFilter
+}
+
+input RackFilter {
+    Ids: IntFilter
+    Cages: StringFilter
+}

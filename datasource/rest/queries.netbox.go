@@ -15,6 +15,7 @@ import (
 
 func (r *RestRequests) GetRackFromNetbox(ctx context.Context, id int) (*entity.Rack, error) {
 	var rack entity.Rack
+	log.Printf("GetRackFromNetbox() with %d", id)
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/%v/", id))
 	if err != nil {
 		return &rack, err
@@ -29,6 +30,45 @@ func (r *RestRequests) GetRackFromNetbox(ctx context.Context, id int) (*entity.R
 		return &rack, err
 	}
 	return &rack, nil
+}
+
+func (r *RestRequests) GetRacksByIdsFromNetbox(ctx context.Context, ids []int) ([]*entity.Rack, error) {
+	var racks []*entity.Rack
+	var res *db.Result
+	log.Printf("GetRackFromNetbox() with %v", ids)
+	var strIds []string
+	for _, id := range ids {
+		strIds = append(strIds, fmt.Sprintf("%d", id))
+	}
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8000/api/dcim/racks/?id__in=%v", strings.Join(strIds, "%2C")))
+	if err != nil {
+		return racks, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	// defer resp.Body.Close()
+	// body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+	for _, elem := range res.Results {
+		tmpRack := &entity.Rack{
+			Id:   elem.Id,
+			Name: elem.Name,
+			CustomFields: entity.CustomFields{
+				RblxRackId:     elem.CustomFields.RblxRackId,
+				DesignRevision: elem.CustomFields.DesignRevision,
+				CageId:         elem.CustomFields.CageId,
+			},
+			Created: elem.Created,
+		}
+		racks = append(racks, tmpRack)
+	}
+	return racks, nil
 }
 
 func (r *RestRequests) ListRacksFromNetbox(ctx context.Context) ([]*entity.Rack, error) {
@@ -150,7 +190,7 @@ func (r *RestRequests) ListServersFromNetbox(ctx context.Context) ([]*entity.Ser
 	}
 	for _, elem := range res.Results {
 		var tmpRackName, tmpDispName string
-		tmpServer := elem//.(map[string]interface{})
+		tmpServer := elem //.(map[string]interface{})
 		// log.Printf("TmpServer looks like %+v\n", tmpServer)
 		tmpDispName = tmpServer["display_name"].(string)
 		tmpId := tmpServer["id"].(float64)
@@ -173,17 +213,30 @@ type ListRacksByFruitIDsRow entity.Rack
 
 func (r *RestRequests) ListRacksByFruitIDs(ctx context.Context, fruitIDs []int) ([]ListRacksByFruitIDsRow, error) {
 	var retList []ListRacksByFruitIDsRow
-	for _, fid := range fruitIDs {
-		res, err := r.GetRackFromNetbox(ctx, fid)
+	log.Println("ListRacksByFruitIDs() through dataloaders")
+	queryEach := false
+	if queryEach == true {
+		for _, fid := range fruitIDs {
+			res, err := r.GetRackFromNetbox(ctx, fid)
+			if err != nil {
+				return nil, err
+			}
+			var tmp ListRacksByFruitIDsRow
+			tmp.Id = res.Id
+			tmp.Name = res.Name
+			tmp.Created = res.Created
+			tmp.CustomFields = res.CustomFields
+			retList = append(retList, tmp)
+		}
+	} else {
+		resp, err := r.GetRacksByIdsFromNetbox(ctx, fruitIDs)
 		if err != nil {
 			return nil, err
 		}
-		var tmp ListRacksByFruitIDsRow
-		tmp.Id = res.Id
-		tmp.Name = res.Name
-		tmp.Created = res.Created
-		tmp.CustomFields = res.CustomFields
-		retList = append(retList, tmp)
+		for _, tmp := range resp {
+			retList = append(retList, ListRacksByFruitIDsRow{Id: tmp.Id, Live: tmp.Live, Name: tmp.Name, Created: tmp.Created,
+				CustomFields: tmp.CustomFields})
+		}
 	}
 	return retList, nil
 }

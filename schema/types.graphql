@@ -1,0 +1,46 @@
+type Fruit {
+    Id(Ids: IntFilter): Int!
+    Name: String!
+    Quantity: Int!
+    Detail: Detail
+    Level: Level
+    Rack: Rack
+}
+type Detail {
+    Name: String!
+    Color: String
+    Taste: String
+}
+type Level {
+    Color: String!
+    Level: String
+}
+type Rack {
+    Id: Int!
+    Name: String!
+    Created: String
+    CustomFields: CustomFields
+    IpAddr: String
+    Live: Boolean
+    Fruit: Fruit
+}
+type CustomFields {
+    RblxRackId: Int
+    DesignRevision: String
+    CageId: String
+}
+type Server {
+    HostName: String!
+    NetboxName: String
+    RackName: String
+    Status: String
+    PublicIpAddress: String
+}
+type Status {
+    Label: String
+    Value: Int
+}
+type Role {
+    Id: Int!
+    Name: String
+}

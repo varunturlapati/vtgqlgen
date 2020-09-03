@@ -21,6 +21,7 @@ type Loaders struct {
 	RackByFruitId      *RackLoader
 	FruitByRackId      *FruitLoader
 	RackFromAllSources *RackLoader
+	RackByFilters      *RackLoader
 }
 
 func newLoaders(ctx context.Context, repo ds.Repository) *Loaders {
@@ -29,6 +30,7 @@ func newLoaders(ctx context.Context, repo ds.Repository) *Loaders {
 		FruitByRackId:      newFruitByRackID(ctx, repo),
 		RackByFruitId:      newRackByFruitID(ctx, repo),
 		RackFromAllSources: newRackByID(ctx, repo),
+		// RackByFilters: newRackByFilters(ctx, repo),
 	}
 }
 
@@ -111,6 +113,38 @@ func newRackByFruitID(ctx context.Context, repo ds.Repository) *RackLoader {
 		MaxBatch: 10,
 	})
 }
+
+/*
+func newRackByFilters(ctx context.Context, repo ds.Repository) *RackLoader {
+	return NewRackLoader(RackLoaderConfig{
+		Fetch: func(rFilter *entity.RackFilter) ([]*entity.Rack, []error) {
+			res, err := repo.ListRacksByFilters(ctx, rFilter)
+			if err != nil {
+				return nil, []error{err}
+			}
+			groupByFruitID := make(map[int]*entity.Rack, len(fruitIDs))
+			for _, r := range res {
+				groupByFruitID[int(r.Id)] = &entity.Rack{
+					Id:   int64(r.Id),
+					Name: r.Name,
+					CustomFields: entity.CustomFields{
+						RblxRackId:     r.CustomFields.RblxRackId,
+						DesignRevision: r.CustomFields.DesignRevision,
+					},
+					Created: r.Created,
+				}
+			}
+			result := make([]*entity.Rack, len(fruitIDs))
+			for i, fruitID := range fruitIDs {
+				result[i] = groupByFruitID[fruitID]
+			}
+			return result, nil
+		},
+		Wait:     5 * time.Millisecond,
+		MaxBatch: 10,
+	})
+}
+*/
 
 func newFruitByRackID(ctx context.Context, repo ds.Repository) *FruitLoader {
 	return NewFruitLoader(FruitLoaderConfig{

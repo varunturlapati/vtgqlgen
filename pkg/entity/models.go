@@ -56,14 +56,6 @@ type Server struct {
 
 type (
 	ServerAttrs Server
-	FruitAttrs Fruit
-	RackAttrs Rack
+	FruitAttrs  Fruit
+	RackAttrs   Rack
 )
-
-type IntFilter struct {
-	Le int
-	Ge int
-	Lt int
-	Gt int
-	Ne int
-}
